@@ -1,24 +1,25 @@
 ******************************************************** NEXT PATCH **************************************************
 
-electric reactive armor renamed electric armor
-  reduce harm from explosions by 99%, drain 15 energy,
-  and greatly increase knock back
-  it does look like you can go through some thin walls,
-    but that's how it is in the real world, so not a bug
+tech: cherenkov radiation - bremsstrahlung damage is increased by 300% over 6 seconds
+  bremsstrahlung does 2->3 damage, and also applies to block collisions
 
-grenades have 40% more ammo
+tech: nuclear transmutation - radiation sources do 70% more damage and harm
 
-time dilation generates 12->18 energy/s
+enthalpy now drops heal power ups instead of directly healing you
+foam-shot has 13->15 particles, is slower, and less spread
+  
+bug fixes
 
 ******************************************************** TODO ********************************************************
 
-a self referencing tech that switches states every time you access the text of it
-  switches state with it runs the description function
-  could be ON/OFF tech
-  could be JUNK
+tech: increase damage from all radioactive sources by 66%
+  apply to dots and to drones, neutron bomb, and radioactive explosions
 
-gunIndex section at the end seems pointless
-  merge with the choosing functions?
+tech: damage mobs in your last 10 seconds of history
+  field tech?
+    time dilation?
+
+standing wave is weak vs. exploding bullets
 
 add foam tech that makes foam stronger vs. shields
 
@@ -41,19 +42,6 @@ tech expansion:  should also make other fields do things
 
 nonrefundable tech don't display, this is confusing
     maybe they can show up but greyed out or something
-
-Tech could probably be indexed, something like running
-tech.index = new Map();
-for (let i = 0; i < tech.tech.length; i++) {
-    tech.index.set(tech.tech.name, tech.tech);
-}
-
-So when you do something like tech.giveTech("nematodes") it can just do
-const queriedTech = tech.index.get("nematodes");
-if (queriedTech) {
-    queriedTech.count++;
-    queriedTech.effect();
-}
 
 guntech fire a bullet that fires nail fragments after 1s in the same direction as the original bullet
   like overwatch roadhog

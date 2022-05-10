@@ -1332,11 +1332,16 @@ const m = {
             }
             const unit = Vector.normalise(Vector.sub(player.position, who.position))
             if (tech.blockDmg) {
-                who.damage(tech.blockDmg * m.dmgScale, true)
+                Matter.Body.setVelocity(who, { x: 0.5 * who.velocity.x, y: 0.5 * who.velocity.y });
+                if (tech.isBlockRadiation && !who.isShielded && !who.isMobBullet) {
+                    mobs.statusDoT(who, tech.blockDmg * m.dmgScale * 4 / 12, 360) //200% increase -> x (1+2) //over 7s -> 360/30 = 12 half seconds -> 3/12
+                } else {
+                    who.damage(tech.blockDmg * m.dmgScale, true)
+                }
                 //draw electricity
                 const step = 40
                 ctx.beginPath();
-                for (let i = 0, len = 1.3 * tech.blockDmg; i < len; i++) {
+                for (let i = 0, len = 0.8 * tech.blockDmg; i < len; i++) {
                     let x = m.pos.x - 20 * unit.x;
                     let y = m.pos.y - 20 * unit.y;
                     ctx.moveTo(x, y);
@@ -1659,10 +1664,15 @@ const m = {
                                     }
                                 }
                                 if (tech.blockDmg) { //electricity
-                                    mob[i].damage(tech.blockDmg * m.dmgScale)
+                                    Matter.Body.setVelocity(mob[i], { x: 0.5 * mob[i].velocity.x, y: 0.5 * mob[i].velocity.y });
+                                    if (tech.isBlockRadiation && !mob[i].isShielded && !mob[i].isMobBullet) {
+                                        mobs.statusDoT(mob[i], tech.blockDmg * m.dmgScale * 4 / 12, 360) //200% increase -> x (1+2) //over 7s -> 360/30 = 12 half seconds -> 3/12
+                                    } else {
+                                        mob[i].damage(tech.blockDmg * m.dmgScale)
+                                    }
                                     const step = 40
                                     ctx.beginPath();
-                                    for (let i = 0, len = 1.3 * tech.blockDmg; i < len; i++) {
+                                    for (let i = 0, len = 0.8 * tech.blockDmg; i < len; i++) {
                                         let x = m.fieldPosition.x - 20 * unit.x;
                                         let y = m.fieldPosition.y - 20 * unit.y;
                                         ctx.moveTo(x, y);
@@ -2108,6 +2118,7 @@ const m = {
                     Matter.Composite.remove(engine.world, m.plasmaBall);
                 }
                 if (tech.isPlasmaBall) {
+                    const circleRadiusScale = 2
                     m.plasmaBall = Bodies.circle(m.pos.x + 10 * Math.cos(m.angle), m.pos.y + 10 * Math.sin(m.angle), 1, {
                         // collisionFilter: {
                         //     group: 0,
@@ -2120,12 +2131,12 @@ const m = {
                         isPopping: false,
                         isAttached: false,
                         isOn: false,
-                        drain: 0.0011,
+                        drain: 0.0017,
                         radiusLimit: 10,
                         damage: 0.8,
                         setPositionToNose() {
                             const nose = { x: m.pos.x + 10 * Math.cos(m.angle), y: m.pos.y + 10 * Math.sin(m.angle) }
-                            Matter.Body.setPosition(this, Vector.add(nose, Vector.mult(Vector.normalise(Vector.sub(nose, m.pos)), this.circleRadius)));
+                            Matter.Body.setPosition(this, Vector.add(nose, Vector.mult(Vector.normalise(Vector.sub(nose, m.pos)), circleRadiusScale * this.circleRadius)));
                         },
                         fire() {
                             this.isAttached = false;
@@ -2149,6 +2160,7 @@ const m = {
                             this.isPopping = false
                         },
                         do() {
+                            // console.log(this.circleRadius)
                             if (this.isOn) {
                                 //collisions with map
                                 if (Matter.Query.collides(this, map).length > 0) {
@@ -2203,12 +2215,13 @@ const m = {
                                 //damage nearby mobs
                                 const dmg = this.damage * m.dmgScale
                                 const arcList = []
-                                const dischargeRange = 150 + 1600 * tech.plasmaDischarge + 1.3 * this.circleRadius
+                                const damageRadius = circleRadiusScale * this.circleRadius
+                                const dischargeRange = 150 + 1600 * tech.plasmaDischarge + 1.3 * damageRadius
                                 for (let i = 0, len = mob.length; i < len; i++) {
                                     if (mob[i].alive && (!mob[i].isBadTarget || mob[i].isMobBullet)) {
                                         const sub = Vector.magnitude(Vector.sub(this.position, mob[i].position))
-                                        if (sub < this.circleRadius + mob[i].radius) {
-                                            if (!this.isAttached && !mob[i].isMobBullet) this.isPopping = true
+                                        if (sub < damageRadius + mob[i].radius) {
+                                            // if (!this.isAttached && !mob[i].isMobBullet) this.isPopping = true
                                             mob[i].damage(dmg);
                                             if (mob[i].speed > 5) {
                                                 Matter.Body.setVelocity(mob[i], { //friction
@@ -2271,7 +2284,7 @@ const m = {
                                 }
 
                                 //graphics
-                                const radius = this.circleRadius * (0.99 + 0.02 * Math.random()) + 3 * Math.random()
+                                const radius = circleRadiusScale * this.circleRadius * (0.99 + 0.02 * Math.random()) + 3 * Math.random()
                                 const gradient = ctx.createRadialGradient(this.position.x, this.position.y, 0, this.position.x, this.position.y, radius);
                                 const alpha = this.alpha + 0.1 * Math.random()
                                 gradient.addColorStop(0, `rgba(255,255,255,${alpha})`);
