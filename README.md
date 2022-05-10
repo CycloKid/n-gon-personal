@@ -1,9 +1,11 @@
 2-d physics rogue-lite platformer shooter
 
-my own alternative site
+Hosted on my own alternative site
 
-https://cyclokid.github.io/n-gon-personal/
+cyclokid.github.io/n-gon-personal/
 
 OR
 
-https://landgreen.github.io/sidescroller/
+landgreen.github.io/sidescroller/
+
+No  sound or sfx in this game 😞
