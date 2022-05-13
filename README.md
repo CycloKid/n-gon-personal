@@ -2,10 +2,10 @@
 
 Hosted on my own alternative site
 
-cyclokid.github.io/n-gon-personal/
+[url](cyclokid.github.io/n-gon-personal/)
 
 OR
 
-landgreen.github.io/sidescroller/
+[url](landgreen.github.io/sidescroller/)
 
 No  sound or sfx in this game 😞
