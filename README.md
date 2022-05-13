@@ -6,6 +6,6 @@ Hosted on my own alternative site
 
 OR
 
-[cyclokid.github.io/n-gon-personal/](landgreen.github.io/sidescroller/)
+[landgreen.github.io/sidescroller/](landgreen.github.io/sidescroller/)
 
 No  sound or sfx in this game 😞
