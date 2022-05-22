@@ -578,7 +578,7 @@ const tech = {
         },
         {
             name: "catabolism",
-            description: `firing while <strong>out</strong> of <strong class='color-ammo'>ammo</strong> spawns ${powerUps.orb.ammo(4)}<br>but it reduces your <strong>maximum</strong> <strong class='color-h'>health</strong> by <strong>1</strong>`,
+            description: `firing while <strong>out</strong> of <strong class='color-ammo'>ammo</strong> spawns ${powerUps.orb.ammo(4)}<br>but it also increase your <strong>maximum</strong> <strong class='color-h'>health</strong> by <strong>20</strong>`,
             maxCount: 1,
             count: 0,
             frequency: 1,
