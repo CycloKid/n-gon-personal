@@ -96,8 +96,8 @@ const b = {
     outOfAmmo() { //triggers after firing when you have NO ammo
         simulation.makeTextLog(`${b.guns[b.activeGun].name}.<span class='color-g'>ammo</span><span class='color-symbol'>:</span> 0`);
         m.fireCDcycle = m.cycle + 30; //fire cooldown       
-        if (tech.isAmmoFromHealth && m.health > -0.20) {
-            tech.extraMaxHealth -= -0.20 //increase max health
+        if (tech.isAmmoFromHealth && m.health > -0.005) {
+            tech.extraMaxHealth -= -0.005 //increase max health
             m.setMaxHealth();
             for (let i = 0; i < 4; i++) powerUps.spawn(m.pos.x + 50 * (Math.random() - 0.5), m.pos.y + 50 * (Math.random() - 0.5), "ammo");
         }
