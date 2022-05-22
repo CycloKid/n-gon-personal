@@ -4,7 +4,7 @@
 
 ## 2-d physics rogue-lite platformer shooter.
 
-##### Making my fork just a little bit more unique
+#### Making my fork just a little bit more unique
 
 Hosted on my own alternative site
 
