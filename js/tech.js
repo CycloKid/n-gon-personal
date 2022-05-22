@@ -12,7 +12,6 @@ const tech = {
             } else {
                 tech.tech[i].frequency = 2
             }
-        }
         //remove lore if it's your first time playing since it's confusing
         //also remove lore if cheating
         lore.techCount = 0;
@@ -578,7 +577,7 @@ const tech = {
         },
         {
             name: "catabolism",
-            description: `firing while <strong>out</strong> of <strong class='color-ammo'>ammo</strong> spawns ${powerUps.orb.ammo(4)}<br>but it also increase your <strong>maximum</strong> <strong class='color-h'>health</strong> by <strong>20</strong>`,
+            description: `firing while <strong>out</strong> of <strong class='color-ammo'>ammo</strong> spawns ${powerUps.orb.ammo(4)}<br>but it also increases your <strong>maximum</strong> <strong class='color-h'>health</strong> by <strong>0.5</strong>`,
             maxCount: 1,
             count: 0,
             frequency: 1,
