@@ -216,7 +216,7 @@ window.onresize = () => {
 //**********************************************************************
 //set wikipedia link
 for (let i = 0, len = tech.tech.length; i < len; i++) {
-    if (!tech.tech[i].link) tech.tech[i].link = `<a target="_blank" href='https://en.wikipedia.org/w/index.php?search=${encodeURIComponent(tech.tech[i].name).replace(/'/g, '%27')}&title=Special:Search' class="link">${tech.tech[i].name}</a>`
+    if (!tech.tech[i].link) tech.tech[i].link = `<a target="_blank" href='https://en.wikipedia.org/w/index.php?seafrch=${encodeURIComponent(tech.tech[i].name).replace(/'/g, '%27')}&title=Special:Search' class="link">${tech.tech[i].name}</a>`
 }
 
 const build = {
@@ -549,7 +549,7 @@ ${simulation.isCheating ? "<br><br><em>lore disabled</em>": ""}
         document.getElementById("experiment-grid").style.display = "grid"
     },
     shareURL(isCustom = false) {
-        let url = "https://landgreen.github.io/sidescroller/index.html?"
+        let url = "https://cyclokid.github.io/n-gon-personal/index.html?"
         url += `&seed=${Math.initialSeed}`
         let count = 0;
         for (let i = 0; i < b.inventory.length; i++) {
