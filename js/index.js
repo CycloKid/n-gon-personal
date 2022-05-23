@@ -549,7 +549,7 @@ ${simulation.isCheating ? "<br><br><em>lore disabled</em>": ""}
         document.getElementById("experiment-grid").style.display = "grid"
     },
     shareURL(isCustom = false) {
-        let url = "https://landgreen.github.io/sidescroller/index.html?"
+        let url = "https://cyclokid.github.io/n-gon-personal/index.html?"
         url += `&seed=${Math.initialSeed}`
         let count = 0;
         for (let i = 0; i < b.inventory.length; i++) {
