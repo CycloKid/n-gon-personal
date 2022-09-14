@@ -4,8 +4,6 @@
   <a href="http://cyclokid.github.io/ngon" target="blank"><img src="https://i.imgur.com/xM2gDVX.png" width="120" alt="N-GON" /></a>
 </p>
 
-## 2-d physics rogue-lite platformer shooter.
-
 #### Making my fork just a little bit more unique
 
 Hosted on my own alternative site
