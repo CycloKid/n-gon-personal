@@ -16,37 +16,38 @@ const level = {
     start() {
         if (level.levelsCleared === 0) { //this code only runs on the first level
             // simulation.enableConstructMode() //used to build maps in testing mode
-            // level.difficultyIncrease(12 * 4) //30 is near max on hard  //60 is near max on why
             // simulation.isHorizontalFlipped = true
+            // tech.giveTech("performance")
+            // level.difficultyIncrease(13 * 4) //30 is near max on hard  //60 is near max on why
             // m.maxHealth = m.health = 100
             // tech.isRerollDamage = true
-            // powerUps.research.changeRerolls(100000)
+            // powerUps.research.changeRerolls(500)
             // m.immuneCycle = Infinity //you can't take damage
             // tech.tech[297].frequency = 100
             // m.couplingChange(5)
-            // m.setField("metamaterial cloaking") //molecular assembler  standing wave   time dilation   perfect diamagnetism   metamaterial cloaking   wormhole   negative mass
+            // m.setField("standing wave") //molecular assembler  standing wave   time dilation   perfect diamagnetism   metamaterial cloaking   wormhole   negative mass    pilot wave
             // simulation.molecularMode = 2
             // m.damage(0.1);
             // b.giveGuns("nail gun") //0 nail gun  1 shotgun  2 super balls 3 wave 4 missiles 5 grenades  6 spores  7 drones  8 foam  9 harpoon  10 mine  11 laser
-            // b.guns[0].ammo = 1000000
+            // b.guns[0].ammo = 10000
 
-            // for (let i = 0; i < 1; ++i) tech.giveTech("mass-energy equivalence")
-            // tech.giveTech("Zeno's paradox")
-            // tech.giveTech("homeostasis")
-            // for (let i = 0; i < 1; ++i) tech.giveTech("1st ionization energy")
-            // for (let i = 0; i < 1; i++) tech.giveTech("negative feedback")
+            // for (let i = 0; i < 1; ++i) tech.giveTech("needle gun")
+            // tech.giveTech("pressure vessel")
+            // tech.giveTech("quintessence")
+            // for (let i = 0; i < 1; ++i) tech.giveTech("freezer burn")
+            // for (let i = 0; i < 1; i++) tech.giveTech("reaction inhibitor")
             // for (let i = 0; i < 10; i++) powerUps.directSpawn(450, -50, "tech");
             // for (let i = 0; i < 10; i++) powerUps.directSpawn(1750, -500, "boost");
             // for (let i = 0; i < 10; i++) powerUps.directSpawn(1750, -500, "coupling");
 
-            // level.testing();
+            // level.final();
             // spawn.starter(1900, -500)
-            // spawn.beetleBoss(2538, -1950)
+            // spawn.timeBoss(2538, -950)
             // for (let i = 0; i < 33; ++i) spawn.sniper(1000 + 5000 * Math.random(), -500 + 300 * Math.random())
             // tech.addJunkTechToPool(0.5)
             // tech.tech[322].frequency = 100
             // spawn.tetherBoss(1900, -500, { x: 1900, y: -500 })
-
+            // for (let i = 0; i < 40; ++i) tech.giveTech()
             // for (let i = 0; i < 13; ++i) powerUps.directSpawn(m.pos.x + 50 * Math.random(), m.pos.y + 50 * Math.random(), "research");
             if (simulation.isTraining) { level.walk(); } else { level.intro(); } //normal starting level ************************************************
             // for (let i = 0; i < 4; ++i) powerUps.directSpawn(m.pos.x + 50 * Math.random(), m.pos.y + 50 * Math.random(), "tech");
@@ -57,13 +58,13 @@ const level = {
             // lore.techCount = 2
             // simulation.isCheating = false //true;
             // level.levelsCleared = 10
-            // mobs.mobDeaths = 200
             // localSettings.loreCount = 7 //this sets what conversation is heard
             // if (localSettings.isAllowed) localStorage.setItem("localSettings", JSON.stringify(localSettings)); //update local storage
             // level.onLevel = -1 //this sets level.levels[level.onLevel] = undefined which is required to run the conversation
             // level.null()
             // localSettings.isHuman = true
             // tech.isNoDraftPause = false //disable pause
+            // mobs.mobDeaths = 200
             // for (let i = 0; i < 13; i++) level.nextLevel(); //jump to final boss
 
             // lore.unlockTesting();
@@ -3125,14 +3126,20 @@ const level = {
         powerUps.addResearchToLevel() //needs to run after mobs are spawned
     },
     final() {
+        const slime = level.hazard(simulation.isHorizontalFlipped ? 150 - 860 : -150, -360, 880, 259) //x, y, width, height, damage = 0.002) {
+        slime.height -= slime.maxHeight - 150 //start slime at zero
+        slime.min.y += slime.maxHeight
+        slime.max.y = slime.min.y + slime.height
         level.custom = () => {
             level.exit.drawAndCheck();
-
             level.enter.draw();
         };
         level.customTopLayer = () => {
+            slime.query();
+            slime.levelRise(0.1)
+
             ctx.fillStyle = "rgba(0,255,255,0.1)"
-            ctx.fillRect(5400, -550, 300, 350)
+            ctx.fillRect(5385, -550, 300, 250)
         };
 
         level.setPosToSpawn(0, -250); //normal spawn
@@ -3145,30 +3152,25 @@ const level = {
         simulation.zoomTransition(level.defaultZoom)
         document.body.style.backgroundColor = "#ddd";
 
-        powerUps.spawn(1675, -50, "ammo");
-        powerUps.spawn(3350, -75, "ammo");
-        powerUps.spawn(3925, -50, "ammo");
-        powerUps.spawn(4250, -75, "ammo");
-        powerUps.spawn(4550, -75, "ammo");
-        powerUps.spawn(5025, -50, "ammo");
-        powerUps.spawn(4725, -50, "ammo");
-        powerUps.spawn(4975, -350, "ammo");
-        powerUps.spawn(5125, -350, "ammo");
-        powerUps.spawn(5075, -425, "ammo");
-        powerUps.spawn(5050, -400, "ammo");
-        powerUps.spawn(5075, -425, "ammo");
+        for (let i = 0; i < 16; i++) powerUps.spawn(4600 + 40 * i, -30, "ammo");
 
         spawn.mapRect(-1950, 0, 8200, 1800); //ground
         spawn.mapRect(-1950, -1500, 1800, 1900); //left wall
         spawn.mapRect(-1950, -3300, 8200, 1800); //roof
         spawn.mapRect(-250, -200, 1000, 300); // shelf
         spawn.mapRect(-250, -1700, 1000, 1250); // shelf roof
-        spawn.blockDoor(710, -210);
+        // spawn.blockDoor(710, -210);
+        spawn.mapRect(705, -210, 25, 50);
+        spawn.mapRect(725, -220, 25, 50);
+        spawn.bodyRect(750, -125, 125, 125);
+        spawn.bodyRect(875, -50, 50, 50);
+
+
         spawn.mapRect(5400, -1700, 400, 1150); //right wall
         spawn.mapRect(5400, -300, 400, 400); //right wall
         spawn.mapRect(5700, -3300, 1800, 5100); //right wall
         spawn.mapRect(level.exit.x, level.exit.y + 20, 100, 100); //exit bump
-        spawn.mapRect(5425, -650, 375, 450); //blocking exit
+        spawn.mapRect(5403, -650, 400, 450); //blocking exit
         // spawn.secondaryBossChance(4800, -500) //no bonus bosses on final level
 
         if (mobs.mobDeaths < level.levelsCleared && !simulation.isCheating) { //pacifist run
@@ -3187,8 +3189,10 @@ const level = {
                 level.enter.draw();
             };
             level.customTopLayer = () => {
+                slime.query();
+                slime.levelRise(0.1)
                 ctx.fillStyle = "rgba(0,255,255,0.1)"
-                ctx.fillRect(-5400 - 300, -550, 300, 350)
+                ctx.fillRect(-5385 - 300, -550, 300, 250)
             };
         }
         if (mobs.mobDeaths < level.levelsCleared && localSettings.loreCount > 5 && !simulation.isCheating) {
