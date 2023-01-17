@@ -1192,6 +1192,24 @@ const mobs = {
                 this.alive = false; //triggers mob removal in mob[i].replace(i)
 
                 if (this.isDropPowerUp) {
+                    if (this.isSoonZombie) { //spawn zombie on death
+                        this.leaveBody = false;
+                        let count = 5 //delay spawn cycles
+                        let cycle = () => {
+                            if (count > 0) {
+                                if (m.alive) requestAnimationFrame(cycle);
+                                if (!simulation.paused && !simulation.isChoosing) {
+                                    count--
+                                }
+                            } else {
+                                spawn.zombie(this.position.x, this.position.y, this.radius, this.vertices.length, this.fill) // zombie(x, y, radius, sides, color)
+                            }
+                        }
+                        requestAnimationFrame(cycle);
+                    }
+
+
+
                     if (tech.iceIXOnDeath && this.isSlowed) {
                         for (let i = 0, len = 2 * Math.sqrt(Math.min(this.mass, 25)) * tech.iceIXOnDeath; i < len; i++) b.iceIX(3, Math.random() * 2 * Math.PI, this.position)
                     }
@@ -1228,19 +1246,19 @@ const mobs = {
                     mobs.mobDeaths++
 
                     if (Math.random() < tech.sporesOnDeath) {
+                        const amount = Math.min(25, Math.floor(2 + this.mass * (0.5 + 0.5 * Math.random())))
                         if (tech.isSporeFlea) {
-                            const len = Math.min(25, Math.floor(2 + this.mass * (0.5 + 0.5 * Math.random()))) / 2
+                            const len = amount / 2
                             for (let i = 0; i < len; i++) {
                                 const speed = 10 + 5 * Math.random()
                                 const angle = 2 * Math.PI * Math.random()
                                 b.flea(this.position, { x: speed * Math.cos(angle), y: speed * Math.sin(angle) })
                             }
                         } else if (tech.isSporeWorm) {
-                            const len = Math.min(25, Math.floor(2 + this.mass * (0.5 + 0.5 * Math.random()))) / 2
+                            const len = amount / 2
                             for (let i = 0; i < len; i++) b.worm(this.position)
                         } else {
-                            const len = Math.min(25, Math.floor(2 + this.mass * (0.5 + 0.5 * Math.random())))
-                            for (let i = 0; i < len; i++) b.spore(this.position)
+                            for (let i = 0; i < amount; i++) b.spore(this.position)
                         }
                     } else if (tech.isExplodeMob) {
                         b.explosion(this.position, Math.min(700, Math.sqrt(this.mass + 6) * (30 + 60 * Math.random())))

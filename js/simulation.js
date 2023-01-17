@@ -190,7 +190,6 @@ const simulation = {
     healScale: 1,
     accelScale: null, //set in levels.setDifficulty
     CDScale: null, //set in levels.setDifficulty
-    isNoPowerUps: false,
     molecularMode: Math.floor(4 * Math.random()), //0 spores, 1 missile, 2 ice IX, 3 drones //randomize molecular assembler field type
     // dropFPS(cap = 40, time = 15) {
     //   simulation.fpsCap = cap
@@ -296,6 +295,34 @@ const simulation = {
         ctx.lineTo(simulation.mouse.x, simulation.mouse.y + size);
         ctx.lineWidth = 2;
         ctx.strokeStyle = "#000"; //'rgba(0,0,0,0.4)'
+        ctx.stroke(); // Draw it
+    },
+    drawCursorBasic() {
+        const size = 10;
+        ctx.beginPath();
+        ctx.moveTo(simulation.mouse.x - size, simulation.mouse.y);
+        ctx.lineTo(simulation.mouse.x + size, simulation.mouse.y);
+        ctx.moveTo(simulation.mouse.x, simulation.mouse.y - size);
+        ctx.lineTo(simulation.mouse.x, simulation.mouse.y + size);
+        ctx.lineWidth = 2;
+        ctx.strokeStyle = "#000"; //'rgba(0,0,0,0.4)'
+        ctx.stroke(); // Draw it
+    },
+    drawCursorCoolDown() {
+        const size = 10;
+        ctx.lineWidth = 2;
+        ctx.strokeStyle = "#000"; //'rgba(0,0,0,0.4)'
+        ctx.beginPath();
+        if (m.fireCDcycle > m.cycle) {
+            ctx.strokeStyle = "#000"; //'rgba(0,0,0,0.4)'
+            ctx.arc(simulation.mouse.x, simulation.mouse.y, size + 1, 0, 2 * Math.PI);
+        } else {
+            ctx.strokeStyle = "#000"; //'rgba(0,0,0,0.4)'
+        }
+        ctx.moveTo(simulation.mouse.x - size, simulation.mouse.y);
+        ctx.lineTo(simulation.mouse.x + size, simulation.mouse.y);
+        ctx.moveTo(simulation.mouse.x, simulation.mouse.y - size);
+        ctx.lineTo(simulation.mouse.x, simulation.mouse.y + size);
         ctx.stroke(); // Draw it
     },
     drawList: [], //so you can draw a first frame of explosions.. I know this is bad
@@ -438,21 +465,25 @@ const simulation = {
             simulation.switchGun();
         }
     },
-    switchGun() {
-        if (tech.isLongitudinal && b.guns[b.activeGun].name === "wave") {
-            for (i = 0, len = b.guns.length; i < len; i++) { //find which gun
-                if (b.guns[i].name === "wave") {
-                    b.guns[i].waves = []; //empty array of wave bullets
-                    break;
-                }
-            }
+    switchToGunInInventory(num) {
+        if (b.inventory[num] !== undefined && b.inventoryGun !== num) {
+            b.inventoryGun = num
+            simulation.switchGun();
         }
+    },
+    switchGun() {
+        if (tech.isLongitudinal && b.activeGun === 3) b.guns[3].waves = []; //empty array of wave bullets
         if (tech.crouchAmmoCount) tech.crouchAmmoCount = 1 //this prevents hacking the tech by switching guns
-
-        b.activeGun = b.inventory[b.inventoryGun];
-        if (b.guns[b.activeGun].charge) b.guns[b.activeGun].charge = 0; //if switching into foam set charge to 0
+        if (b.inventory.length > 0) b.activeGun = b.inventory[b.inventoryGun];
+        b.guns[8].charge = 0; // foam charge to 0
         simulation.updateGunHUD();
         simulation.boldActiveGunHUD();
+        //set crosshairs
+        if (b.activeGun === 1) {
+            simulation.drawCursor = simulation.drawCursorCoolDown
+        } else {
+            simulation.drawCursor = simulation.drawCursorBasic
+        }
     },
     zoom: null,
     zoomScale: 1000,
@@ -620,11 +651,8 @@ const simulation = {
         document.getElementById("splash").onclick = function() {
             simulation.startGame();
         };
-        // document.getElementById("choose-grid").style.display = "none"
         document.getElementById("choose-grid").style.visibility = "hidden"
         document.getElementById("choose-grid").style.opacity = "0"
-        document.getElementById("choose-background").style.visibility = "hidden"
-        document.getElementById("choose-background").style.opacity = "0"
         document.getElementById("info").style.display = "inline";
         document.getElementById("info").style.opacity = "0";
         document.getElementById("experiment-button").style.display = "inline"
@@ -699,10 +727,8 @@ const simulation = {
         }
         if (isTrainingRun) {
             simulation.isTraining = true
-            simulation.isNoPowerUps = true
         } else {
             simulation.isTraining = false
-            simulation.isNoPowerUps = false;
         }
         simulation.onTitlePage = false;
         // document.getElementById("choose-grid").style.display = "none"
@@ -746,7 +772,6 @@ const simulation = {
 
         input.endKeySensing();
         b.removeAllGuns();
-
         tech.setupAllTech(); //sets tech to default values
         tech.cancelCount = 0;
         for (i = 0, len = b.guns.length; i < len; i++) { //find which gun 
@@ -790,6 +815,8 @@ const simulation = {
         }
         m.hole.isOn = false
         simulation.paused = false;
+        // simulation.cycle = 0
+        // m.cycle = 0
         engine.timing.timeScale = 1;
         simulation.fpsCap = simulation.fpsCapDefault;
         simulation.isAutoZoom = true;
@@ -873,33 +900,35 @@ const simulation = {
     clearMap() {
         ctx.setTransform(1, 0, 0, 1, 0, 0);
         if (m.alive) {
-            if (tech.isLongitudinal) {
-                for (i = 0, len = b.guns.length; i < len; i++) { //find which gun
-                    if (b.guns[i].name === "wave") {
-                        b.guns[i].waves = []; //empty array of wave bullets
-                        break;
+            if (tech.isLongitudinal) b.guns[3].waves = []; //empty array of wave bullets
+            if (b.guns[10].have) { //do you have mines as a gun
+                let count = 0;
+                for (i = 0, len = bullet.length; i < len; i++) { //count mines left on map
+                    if (
+                        (bullet[i].bulletType === "mine" && (!tech.isMineSentry || bullet[i].shots === undefined)) ||
+                        bullet[i].bulletType === "laser mine") {
+                        count++
                     }
                 }
+                if (tech.crouchAmmoCount) count = Math.ceil(count / 2)
+                b.guns[10].ammo += count
+                if (tech.ammoCap) b.guns[10].ammo = Math.min(tech.ammoCap, b.guns[10].ammo)
+                simulation.updateGunHUD();
             }
 
-            let count = 0;
-            for (i = 0, len = bullet.length; i < len; i++) { //count mines left on map
-                if (bullet[i].bulletType === "mine" || bullet[i].bulletType === "laser mine") count++
-            }
-            for (i = 0, len = b.guns.length; i < len; i++) { //find which gun is mine
-                if (b.guns[i].name === "mine") {
-                    if (tech.crouchAmmoCount) count = Math.ceil(count / 2)
-                    b.guns[i].ammo += count
-                    if (tech.ammoCap) b.guns[i].ammo = Math.min(tech.ammoCap, b.guns[i].ammo)
-                    simulation.updateGunHUD();
-                    break;
-                }
-            }
+            // for (i = 0, len = b.guns.length; i < len; i++) { //find which gun is mine
+            //     if (b.guns[i].name === "mine") {
+            //         b.guns[i].ammo += count
+            //         if (tech.ammoCap) b.guns[i].ammo = Math.min(tech.ammoCap, b.guns[i].ammo)
+            //         simulation.updateGunHUD();
+            //         break;
+            //     }
+            // }
 
             if (tech.isMutualism && !tech.isEnergyHealth) {
                 for (let i = 0; i < bullet.length; i++) {
                     if (bullet[i].isMutualismActive) {
-                        m.health += 0.005 + 0.005 * (bullet[i].isSpore || bullet[i].isFlea)
+                        m.health += 0.01 + 0.01 * ((bullet[i].isSpore || bullet[i].isFlea) ? 0 : 1)
                         if (m.health > m.maxHealth) m.health = m.maxHealth;
                         m.displayHealth();
                     }
@@ -958,12 +987,21 @@ const simulation = {
                 if (droneCount > 0) {
                     requestAnimationFrame(respawnDrones);
                     if (!simulation.paused && !simulation.isChoosing && m.alive) {
-                        const where = { x: level.enter.x + 50, y: level.enter.y - 60 }
+                        const where = {
+                            x: level.enter.x + 50,
+                            y: level.enter.y - 60
+                        }
                         droneCount--
                         if (tech.isDroneRadioactive) {
-                            b.droneRadioactive({ x: where.x + 100 * (Math.random() - 0.5), y: where.y + 100 * (Math.random() - 0.5) }, 0)
+                            b.droneRadioactive({
+                                x: where.x + 100 * (Math.random() - 0.5),
+                                y: where.y + 100 * (Math.random() - 0.5)
+                            }, 0)
                         } else {
-                            b.drone({ x: where.x + 100 * (Math.random() - 0.5), y: where.y + 120 * (Math.random() - 0.5) }, 0)
+                            b.drone({
+                                x: where.x + 100 * (Math.random() - 0.5),
+                                y: where.y + 120 * (Math.random() - 0.5)
+                            }, 0)
                             if (tech.isDroneGrab && deliveryCount > 0) {
                                 const who = bullet[bullet.length - 1]
                                 who.isImproved = true;
@@ -985,8 +1023,14 @@ const simulation = {
                     requestAnimationFrame(respawnSpores);
                     if (!simulation.paused && !simulation.isChoosing) {
                         sporeCount--
-                        const where = { x: level.enter.x + 50, y: level.enter.y - 60 }
-                        b.spore({ x: where.x + 100 * (Math.random() - 0.5), y: where.y + 120 * (Math.random() - 0.5) })
+                        const where = {
+                            x: level.enter.x + 50,
+                            y: level.enter.y - 60
+                        }
+                        b.spore({
+                            x: where.x + 100 * (Math.random() - 0.5),
+                            y: where.y + 120 * (Math.random() - 0.5)
+                        })
                     }
                 }
             }
@@ -998,8 +1042,14 @@ const simulation = {
                     requestAnimationFrame(respawnWorms);
                     if (!simulation.paused && !simulation.isChoosing) {
                         wormCount--
-                        const where = { x: level.enter.x + 50, y: level.enter.y - 60 }
-                        b.worm({ x: where.x + 100 * (Math.random() - 0.5), y: where.y + 120 * (Math.random() - 0.5) })
+                        const where = {
+                            x: level.enter.x + 50,
+                            y: level.enter.y - 60
+                        }
+                        b.worm({
+                            x: where.x + 100 * (Math.random() - 0.5),
+                            y: where.y + 120 * (Math.random() - 0.5)
+                        })
                     }
                 }
             }
@@ -1011,10 +1061,19 @@ const simulation = {
                     requestAnimationFrame(respawnFleas);
                     if (!simulation.paused && !simulation.isChoosing) {
                         fleaCount--
-                        const where = { x: level.enter.x + 50, y: level.enter.y - 60 }
+                        const where = {
+                            x: level.enter.x + 50,
+                            y: level.enter.y - 60
+                        }
                         const speed = 6 + 3 * Math.random()
                         const angle = 2 * Math.PI * Math.random()
-                        b.flea({ x: where.x + 100 * (Math.random() - 0.5), y: where.y + 120 * (Math.random() - 0.5) }, { x: speed * Math.cos(angle), y: speed * Math.sin(angle) })
+                        b.flea({
+                            x: where.x + 100 * (Math.random() - 0.5),
+                            y: where.y + 120 * (Math.random() - 0.5)
+                        }, {
+                            x: speed * Math.cos(angle),
+                            y: speed * Math.sin(angle)
+                        })
                     }
                 }
             }
@@ -1142,18 +1201,6 @@ const simulation = {
                 m.energy -= 0.1 * simulation.difficultyMode
             }
             if (isNaN(player.position.x)) m.death();
-
-            // if (tech.isEnergyDamage) {
-            //   document.getElementById("tech-capacitor").innerHTML = `(+${(m.energy/0.05).toFixed(0)}%)`
-            // }
-            // if (tech.restDamage) {
-            //   if (player.speed < 1) {
-            //     document.getElementById("tech-rest").innerHTML = `(+20%)`
-            //   } else {
-            //     document.getElementById("tech-rest").innerHTML = `(+0%)`
-            //   }
-            // }
-
             if (m.lastKillCycle + 300 > m.cycle) { //effects active for 5 seconds after killing a mob
                 if (tech.isEnergyRecovery && m.immuneCycle < m.cycle) m.energy += m.maxEnergy * 0.05
                 if (tech.isHealthRecovery) m.addHealth(0.005 * m.maxHealth)
@@ -1555,7 +1602,12 @@ const simulation = {
             outHTML += "<div>" + simulation.constructMapString[i] + "</div>"
         }
         console.log(out)
-        navigator.clipboard.writeText(out).then(function() { /* clipboard successfully set */ }, function() { /* clipboard write failed */ console.log('copy failed') });
+        navigator.clipboard.writeText(out).then(function() {
+            /* clipboard successfully set */
+        }, function() {
+            /* clipboard write failed */
+            console.log('copy failed')
+        });
         document.getElementById("construct").innerHTML = outHTML
     },
     // copyToClipBoard(value) {
