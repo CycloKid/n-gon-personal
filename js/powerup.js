@@ -333,7 +333,7 @@ const powerUps = {
     },
     endDraft(type, isCanceled = false) { //type should be a gun, tech, or field
         if (isCanceled) {
-            if (tech.isCancelTech && Math.random() < 0.85) {
+            if (tech.isCancelTech && Math.random() < 0.85 && type !== "entanglement") {
                 // powerUps.research.use('tech')
                 powerUps[type].effect();
                 return
@@ -628,7 +628,9 @@ const powerUps = {
     },
     researchText(type) {
         let text = ""
-        if (tech.isJunkResearch && powerUps.research.currentRerollCount < 3) {
+        if (type === "entanglement") {
+            text += `<div class='choose-grid-module entanglement flipX'>entanglement</div>`
+        } else if (tech.isJunkResearch && powerUps.research.currentRerollCount < 3) {
             text += `<div onclick="powerUps.research.use('${type}')" class='research-card'>` // style = "margin-left: 192px; margin-right: -192px;"
             tech.junkResearchNumber = Math.ceil(4 * Math.random())
             text += `<div><div> <span style="position:relative;">`
@@ -661,7 +663,7 @@ const powerUps = {
         //     width = "384px"
         // }
         let text = ""
-        if (localSettings.isHideImages || canvas.width < 1200) {
+        if (totalChoices === 1 || localSettings.isHideImages || canvas.width < 1200) {
             document.getElementById("choose-grid").style.gridTemplateColumns = width
             text += powerUps.cancelText(type)
             text += powerUps.researchText(type)
@@ -669,10 +671,6 @@ const powerUps = {
             document.getElementById("choose-grid").style.gridTemplateColumns = `repeat(2, ${width})`
             text += powerUps.researchText(type)
             text += powerUps.cancelText(type)
-        } else if (totalChoices === 1) {
-            document.getElementById("choose-grid").style.gridTemplateColumns = width
-            text += powerUps.cancelText(type)
-            text += powerUps.researchText(type)
         } else {
             document.getElementById("choose-grid").style.gridTemplateColumns = `repeat(3, ${width})`
             text += "<div></div>"
@@ -702,22 +700,22 @@ const powerUps = {
     hideStyle: `style="height:auto; border: none; background-color: transparent;"`,
     gunText(choose, click) {
         const style = localSettings.isHideImages ? powerUps.hideStyle : `style="background-image: url('img/gun/${b.guns[choose].name}.webp');"`
-        return `<div class="choose-grid-module card-background" onclick="${click}" ${style}>
+        return `<div class="choose-grid-module card-background" onclick="${click}" onauxclick="${click}" ${style}>
         <div class="card-text">
         <div class="grid-title"><div class="circle-grid gun"></div> &nbsp; ${b.guns[choose].name}</div>
         ${b.guns[choose].description}</div></div>`
     },
     fieldText(choose, click) {
         const style = localSettings.isHideImages ? powerUps.hideStyle : `style="background-image: url('img/field/${m.fieldUpgrades[choose].name}${choose === 0 ? Math.floor(Math.random()*10) : ""}.webp');"`
-        return `<div class="choose-grid-module card-background" onclick="${click}" ${style}>
+        return `<div class="choose-grid-module card-background" onclick="${click}" onauxclick="${click}"${style}>
         <div class="card-text">
         <div class="grid-title"><div class="circle-grid field"></div> &nbsp; ${m.fieldUpgrades[choose].name}</div>
         ${m.fieldUpgrades[choose].description}</div></div>`
     },
     techText(choose, click) {
         const techCountText = tech.tech[choose].count > 0 ? `(${tech.tech[choose].count+1}x)` : "";
-        const style = localSettings.isHideImages ? powerUps.hideStyle : `style="background-image: url('img/${tech.tech[choose].name}.webp');"`
-        return `<div class="choose-grid-module card-background" onclick="${click}" ${style}>
+        const style = localSettings.isHideImages || tech.tech[choose].isLore ? powerUps.hideStyle : `style="background-image: url('img/${tech.tech[choose].name}.webp');"`
+        return `<div class="choose-grid-module card-background" onclick="${click}" onauxclick="${click}"${style}>
                 <div class="card-text">
                 <div class="grid-title"><div class="circle-grid tech"></div> &nbsp; ${tech.tech[choose].name} ${techCountText}</div>
                 ${tech.tech[choose].descriptionFunction ? tech.tech[choose].descriptionFunction() : tech.tech[choose].description}</div></div>`
@@ -726,7 +724,7 @@ const powerUps = {
     fieldTechText(choose, click) {
         const techCountText = tech.tech[choose].count > 0 ? `(${tech.tech[choose].count+1}x)` : "";
         const style = localSettings.isHideImages ? powerUps.hideStyle : `style="background-image: url('img/${tech.tech[choose].name}.webp');"`
-        return `<div class="choose-grid-module card-background" onclick="${click}" ${style}>
+        return `<div class="choose-grid-module card-background" onclick="${click}" onauxclick="${click}"${style}>
                 <div class="card-text">
                 <div class="grid-title">
                 <span style="position:relative;">
@@ -739,7 +737,7 @@ const powerUps = {
     gunTechText(choose, click) {
         const techCountText = tech.tech[choose].count > 0 ? `(${tech.tech[choose].count+1}x)` : "";
         const style = localSettings.isHideImages ? powerUps.hideStyle : `style="background-image: url('img/${tech.tech[choose].name}.webp');"`
-        return `<div class="choose-grid-module card-background" onclick="${click}" ${style}>
+        return `<div class="choose-grid-module card-background" onclick="${click}" onauxclick="${click}"${style}>
                 <div class="card-text">
                 <div class="grid-title">         
                 <span style="position:relative;">
@@ -780,7 +778,7 @@ const powerUps = {
                 }
             }, 1);
         }
-        return `<div id = "junk-${choose}" class="choose-grid-module card-background" onclick="${click}" ${style}>
+        return `<div id = "junk-${choose}" class="choose-grid-module card-background" onclick="${click}" onauxclick="${click}"${style}>
                 <div class="card-text">
                 <div class="grid-title"><div class="circle-grid junk"></div> &nbsp; ${tech.tech[choose].name} ${techCountText}</div>
                 ${tech.tech[choose].descriptionFunction ? tech.tech[choose].descriptionFunction() : tech.tech[choose].description}</div></div>`
@@ -1042,15 +1040,15 @@ const powerUps = {
                             text += powerUps.fieldText(pick, `powerUps.choose('field',${pick})`)
                         }
                     }
-                    if (tech.isMicroTransactions && powerUps.research.count > 0) {
-                        const skins = [] //find skins
-                        for (let i = 0; i < tech.tech.length; i++) {
-                            if (tech.tech[i].isSkin) skins.push(i)
-                        }
-                        const choose = skins[Math.floor(Math.seededRandom(0, skins.length))] //pick an element from the array of options
+                    // if (tech.isMicroTransactions && powerUps.research.count > 0) {
+                    //     const skins = [] //find skins
+                    //     for (let i = 0; i < tech.tech.length; i++) {
+                    //         if (tech.tech[i].isSkin) skins.push(i)
+                    //     }
+                    //     const choose = skins[Math.floor(Math.seededRandom(0, skins.length))] //pick an element from the array of options
 
-                        text += `<div class="choose-grid-module" onclick="tech.giveTech(${choose});powerUps.research.changeRerolls(-1);powerUps.endDraft('tech');powerUps.tech.effect();"><div class="grid-title"><div class="circle-grid research"></div> <span style = 'font-size:90%; font-weight: 100; letter-spacing: -1.5px;'>microtransaction:</span> ${tech.tech[choose].name}</div>${tech.tech[choose].descriptionFunction ? tech.tech[choose].descriptionFunction() : tech.tech[choose].description}</div>`
-                    }
+                    //     text += `<div class="choose-grid-module" onclick="tech.giveTech(${choose});powerUps.research.changeRerolls(-1);powerUps.endDraft('tech');powerUps.tech.effect();"><div class="grid-title"><div class="circle-grid research"></div> <span style = 'font-size:90%; font-weight: 100; letter-spacing: -1.5px;'>microtransaction:</span> ${tech.tech[choose].name}</div>${tech.tech[choose].descriptionFunction ? tech.tech[choose].descriptionFunction() : tech.tech[choose].description}</div>`
+                    // }
                     if (tech.isBrainstorm && !tech.isBrainstormActive && !simulation.isChoosing) {
                         tech.isBrainstormActive = true
                         let count = 0
@@ -1096,12 +1094,14 @@ const powerUps = {
         },
         effect() {
             if (m.alive && localSettings.entanglement) {
-                let text = ""
-                document.getElementById("choose-grid").style.gridTemplateColumns = "384px 384px 384px"
+                // let text = ""
+                // document.getElementById("choose-grid").style.gridTemplateColumns = "384px 384px 384px"
+                let text = powerUps.buildColumns(3, "entanglement")
+
                 // text += powerUps.researchText('tech')
-                text += "<div></div>"
-                text += "<div class='choose-grid-module entanglement flipX'>entanglement</div>"
-                text += `<div class='choose-grid-module' onclick='powerUps.endDraft("tech",true)' style="width: 82px; text-align: center;font-size: 1.1em;font-weight: 100;justify-self: end;">cancel</div>` //powerUps.cancelText('tech')
+                // text += "<div></div>"
+                // text += "<div class='choose-grid-module entanglement flipX'>entanglement</div>"
+                // text += `<div class='choose-grid-module' onclick='powerUps.endDraft("tech",true)' style="width: 82px; text-align: center;font-size: 1.1em;font-weight: 100;justify-self: end;">cancel</div>` //powerUps.cancelText('tech')
                 if (localSettings.entanglement.fieldIndex) {
                     const choose = localSettings.entanglement.fieldIndex //add field
                     text += powerUps.fieldText(choose, `powerUps.choose('field',${choose})`)
@@ -1381,6 +1381,58 @@ const powerUps = {
     //     }
     //     return 0
     // },
+    randomize(where) { //makes a random power up convert into a random different power up
+        //put 10 power ups close together
+        const len = Math.min(10, powerUp.length)
+        for (let i = 0; i < len; i++) { //collide the first 10 power ups
+            const unit = Vector.rotate({ x: 1, y: 0 }, 6.28 * Math.random())
+            Matter.Body.setPosition(powerUp[i], Vector.add(where, Vector.mult(unit, 20 + 25 * Math.random())));
+            Matter.Body.setVelocity(powerUp[i], Vector.mult(unit, 20));
+        }
+
+        //count big power ups and small power ups
+        let options = ["heal", "research", "ammo"]
+        if (m.coupling) options.push("coupling")
+        if (tech.isBoostPowerUps) options.push("boost")
+        let bigIndexes = []
+        let smallIndexes = []
+        for (let i = 0; i < powerUp.length; i++) {
+            if (powerUp[i].name === "tech" || powerUp[i].name === "gun" || powerUp[i].name === "field") {
+                bigIndexes.push(i)
+            } else {
+                smallIndexes.push(i)
+            }
+        }
+        if (bigIndexes.length > 0) {
+            // console.log("at least 1 big will always spilt")
+            const index = bigIndexes[Math.floor(Math.random() * bigIndexes.length)]
+            for (let i = 0; i < 3; i++) powerUps.directSpawn(where.x, where.y, options[Math.floor(Math.random() * options.length)], false)
+
+            Matter.Composite.remove(engine.world, powerUp[index]);
+            powerUp.splice(index, 1);
+        } else if (smallIndexes.length > 2 && Math.random() < 0.33) {
+            // console.log("no big, at least 3 small can combine")
+            for (let j = 0; j < 3; j++) {
+                for (let i = 0; i < powerUp.length; i++) {
+                    if (powerUp[i].name === "heal" || powerUp[i].name === "research" || powerUp[i].name === "ammo" || powerUp[i].name === "coupling" || powerUp[i].name === "boost") {
+                        Matter.Composite.remove(engine.world, powerUp[i]);
+                        powerUp.splice(i, 1);
+                        break
+                    }
+                }
+            }
+
+            options = ["tech", "gun", "field"]
+            powerUps.directSpawn(where.x, where.y, options[Math.floor(Math.random() * options.length)], false)
+        } else if (smallIndexes.length > 0) {
+            // console.log("no big, at least 1 small will swap flavors")
+            const index = Math.floor(Math.random() * powerUp.length)
+            options = options.filter(e => e !== powerUp[index].name); //don't repeat the current power up type
+            powerUps.directSpawn(where.x, where.y, options[Math.floor(Math.random() * options.length)], false)
+            Matter.Composite.remove(engine.world, powerUp[index]);
+            powerUp.splice(index, 1);
+        }
+    },
     directSpawn(x, y, target, moving = true, mode = null, size = powerUps[target].size()) {
         let index = powerUp.length;
         target = powerUps[target];

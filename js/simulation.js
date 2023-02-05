@@ -676,48 +676,6 @@ const simulation = {
     },
     fpsInterval: 0, //set in startGame
     then: null,
-    introPlayer() { //not work, but trying to show player in the intro screen
-        setTimeout(() => {
-            document.getElementById("info").style.display = "none";
-            document.getElementById("splash").style.display = "none"; //hides the element that spawned the function
-
-            simulation.clearMap()
-            m.draw = m.drawDefault //set the play draw to normal, undoing some junk tech
-            m.spawn(); //spawns the player
-            m.look = m.lookDefault
-
-
-            //level
-
-            level.testing(); //not in rotation, used for testing
-
-
-            //load level
-            simulation.setZoom();
-            level.addToWorld(); //add bodies to game engine
-            simulation.draw.setPaths();
-
-            function cycle() {
-                simulation.gravity();
-                Engine.update(engine, simulation.delta);
-                simulation.wipe();
-                if (m.onGround) {
-                    m.groundControl()
-                } else {
-                    m.airControl()
-                }
-                m.move();
-                // m.look();
-                // simulation.camera();
-                m.draw();
-                m.hold();
-                simulation.draw.drawMapPath();
-                ctx.restore();
-                if (simulation.onTitlePage) requestAnimationFrame(cycle);
-            }
-            requestAnimationFrame(cycle)
-        }, 1000);
-    },
     startGame(isBuildRun = false, isTrainingRun = false) {
         simulation.isTextLogOpen = true
         simulation.clearMap()
@@ -762,7 +720,7 @@ const simulation = {
         })
         // ctx.shadowColor = '#000';
         if (!m.isShipMode) {
-            m.draw = m.drawDefault //set the play draw to normal, undoing some junk tech
+            m.resetSkin() //set the play draw to normal, undoing some junk tech
             m.spawn(); //spawns the player
             m.look = m.lookDefault
         } else {
@@ -1529,13 +1487,11 @@ const simulation = {
                 } else if (e.button === 4) {
                     simulation.outputMapString(`${Math.floor(simulation.constructMouseDownPosition.x)}, ${Math.floor(simulation.constructMouseDownPosition.y)}`);
                 } else if (simulation.mouseInGame.x > simulation.constructMouseDownPosition.x && simulation.mouseInGame.y > simulation.constructMouseDownPosition.y) { //make sure that the width and height are positive
-
                     if (e.button === 0) { //add map
                         if (level.isProcedural) {
                             simulation.outputMapString(`spawn.mapRect(x+${x}, y+${y}, ${dx}, ${dy});\n`);
                         } else {
                             simulation.outputMapString(`spawn.mapRect(${x}, ${y}, ${dx}, ${dy});\n`);
-
                         }
                         //see map in world
                         spawn.mapRect(x, y, dx, dy);
@@ -1545,14 +1501,12 @@ const simulation = {
                         Matter.Body.setStatic(map[len], true); //make static
                         Composite.add(engine.world, map[len]); //add to world
                         simulation.draw.setPaths() //update map graphics
-
                     } else if (e.button === 2) { //add body
                         if (level.isProcedural) {
                             simulation.outputMapString(`spawn.bodyRect(x+${x}, y+${y}, ${dx}, ${dy});\n`);
                         } else {
                             simulation.outputMapString(`spawn.bodyRect(${x}, ${y}, ${dx}, ${dy});\n`);
                         }
-
                         //see map in world
                         spawn.bodyRect(x, y, dx, dy);
                         len = body.length - 1
