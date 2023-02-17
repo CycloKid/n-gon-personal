@@ -1,25 +1,76 @@
 ******************************************************** NEXT PATCH **************************************************
 
-some tech come with a skin - but only 1 at a time
-  tech aperture -  skin, damage cycles between -25% and +125%
-  tungsten carbide - skin, +100->150 max health
-  mass-energy equivalence - skin, gets a bit more benefit from defense
-  CPT symmetry - skin, costs a bit less energy
-  flip-flop, and relay switch and a few JUNK tech are also skins
+tech: aerostat - +88% damage off the ground, but -22% damage on the ground
+  negative mass field required
 
-some new images
+tetherBoss now has beetle babies, and immunity
+skins have a unique orb for their description card
+  and some new images
+cloaking field has a new graphic for sneak attack on the cross hairs
+
+new community map yingYang by Richard0820
+
+
 bug fixes
 
 *********************************************************** TODO *****************************************************
 
-tech: if a needle hits 2 mobs reset your fire CD
-  and maybe to 2x damage for each consecutive mob hit?
+live updating defense and damage HUD?
+  makes more sense for defense
+  for damage many effects only apply to one type of damage so it would show up
+  update frequency
+    per s
+    every cycle? (only if canvas)
+  don't include difficulty effects
+  draw in canvas or html?
+    add border for readability
+    a number
+    bars
+      horizontal
+      vertical
+    circles
+  defense
+    color: grey, white
+    scales from 0-1
+    wrapped around health bar like armor
+      what about mass-energy which has no health bar
+    at defense = 1 outlines health bar fully
+  health bar
+    color: keep red (green?)
+      red is the same as mob health bars
+  damage
+    color: red if not used for health
+    scales from 1-infinity maps to 0->1
+      1-1/(1+damage)
 
-tech for lens - you can only fire through the lens and some buff? damage or energy?
-  this was in todo.txt on GitHub. I think it should be 'laser never drains energy, but you can only fire through lens and +90° lens arc, +100% damage (also you can not gain compound lens with this upgrade)
+
+
+
+map element - conveyor belt
+  for blocks, player, power ups touching map element apply vector force
+
+perfect diamagnatism could bounce on mobs, or even map elements?
+  could work like a rocket jump?
+
+field tech:  negative mass, wormhole?
+  tech: do 60% damage when not touching ground
+  tech: 50% defense when not touching ground
 
 Tech: Von Neuman probes - Drones will consume blocks to replicate themselves
   it's a little too similar to the drone repair tech, but I kinda like it better.  drones that eat blocks and spit out more drones is cool 
+
+when gaining ammo have the ammo test quickly count up by Math.floor(1/20x) of the total ammo given
+  maybe bold, flash the text for a second after
+
+tech: parry - immune to harm for 0.25-0.5 seconds after pressing field button
+  needs a 5 second CD?
+
+tech: if a needle hits 2 mobs reset your fire CD
+  maybe to 2x damage for each consecutive mob hit?
+  maybe after a needle hits a mob the needle splits into 3 needles
+
+tech for lens - you can only fire through the lens and some buff? damage or energy?
+  this was in todo.txt on GitHub. I think it should be 'laser never drains energy, but you can only fire through lens and +90° lens arc, +100% damage (also you can not gain compound lens with this upgrade)
 
 new boss level like reactor with a very very big boss
   mechanics around a very big boss?
