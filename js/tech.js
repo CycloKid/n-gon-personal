@@ -220,6 +220,14 @@ const tech = {
     damage: 1, //used for tech changes to player damage that don't have complex conditions
     damageFromTech() {
         let dmg = tech.damage //m.fieldDamage
+        if (tech.isDivisor) {
+            for (let i = 0; i < b.inventory.length; i++) {
+                if (b.guns[b.inventory[i]].ammo % 3 === 0) {
+                    dmg *= 1.4
+                    break
+                }
+            }
+        }
         if (tech.isNoGroundDamage) dmg *= m.onGround ? 0.78 : 1.88
         if (tech.isDilate) dmg *= 1.5 + Math.sin(m.cycle * 0.0075)
         if (tech.isGunChoice && tech.buffedGun === b.inventoryGun) dmg *= 1 + 0.31 * b.inventory.length
@@ -227,7 +235,7 @@ const tech = {
         if (m.coupling && (m.fieldMode === 0 || m.fieldMode === 5)) dmg *= 1 + 0.15 * m.coupling
         if (m.isSneakAttack && m.sneakAttackCycle + Math.min(120, 0.5 * (m.cycle - m.enterCloakCycle)) > m.cycle) dmg *= 4.33 * (1 + 0.33 * m.coupling)
         if (tech.deathSkipTime) dmg *= 1 + 0.6 * tech.deathSkipTime
-        if (tech.isTechDebt) dmg *= Math.max(Math.pow(0.85, tech.totalCount - 20), 4 - 0.15 * tech.totalCount)
+        if (tech.isTechDebt) dmg *= Math.min(Math.pow(0.85, tech.totalCount - 20), 4 - 0.15 * tech.totalCount)
         if (tech.isFlipFlopDamage && tech.isFlipFlopOn) dmg *= 1.555
         if (tech.isAnthropicDamage && tech.isDeathAvoidedThisLevel) dmg *= 2.3703599
         if (tech.isDupDamage) dmg *= 1 + Math.min(1, tech.duplicationChance())
@@ -312,7 +320,7 @@ const tech = {
             },
             requires: "not skin",
             effect() {
-                tech.hardLanding = 40
+                tech.hardLanding = 70
                 tech.isFallingDamage = true;
                 m.setMaxHealth();
                 m.addHealth(1 / simulation.healScale)
@@ -327,7 +335,7 @@ const tech = {
         },
         {
             name: "elasticity",
-            description: "<strong>+33%</strong> <strong>movement</strong> and <strong>jumping</strong><br><strong>+15%</strong> <strong class='color-defense'>defense</strong>",
+            description: "<strong>+33%</strong> <strong>movement</strong> and <strong>jumping</strong><br><strong>+30%</strong> <strong class='color-defense'>defense</strong>",
             maxCount: 3,
             count: 0,
             frequency: 1,
@@ -339,7 +347,7 @@ const tech = {
             requires: "not skinned",
             effect() {
                 m.skin.mech();
-                tech.hardLanding = 80
+                tech.hardLanding = 110
                 tech.squirrelFx += 0.4;
                 tech.squirrelJump += 0.16;
                 m.setMovement()
@@ -526,6 +534,25 @@ const tech = {
             },
             remove() {
                 tech.isRewindGrenade = false;
+            }
+        },
+        {
+            name: "ternary", //"divisor",
+            descriptionFunction() {
+                return `<strong>+40%</strong> <strong class='color-d'>damage</strong> while one of your <strong class='color-g'>guns</strong><br>has <strong class='color-ammo'>ammo</strong> divisible by <strong>3</strong>`
+            },
+            maxCount: 1,
+            count: 0,
+            frequency: 1,
+            frequencyDefault: 1,
+            allowed: () => true,
+            requires: "",
+            // divisible: 3, // + Math.floor(6 * Math.random()),
+            effect() {
+                tech.isDivisor = true;
+            },
+            remove() {
+                tech.isDivisor = false;
             }
         },
         {
@@ -4800,7 +4827,7 @@ const tech = {
             frequency: 1,
             frequencyDefault: 1,
             allowed() {
-                return (tech.haveGunCheck("shotgun") && !tech.isNailShot && !tech.isIceShot && !tech.isRivets && !tech.isFoamShot && !tech.isSporeWorm && !tech.isSporeFlea && !tech.isNeedles) || ((tech.haveGunCheck("super balls") || tech.isSuperMine) && !tech.isFoamBall && !tech.superHarm) || (tech.isRivets && !tech.isNailCrit) || (m.fieldUpgrades[m.fieldMode].name === "molecular assembler" && simulation.molecularMode === 3) || (tech.haveGunCheck("drones") && !tech.isForeverDrones && !tech.isDroneRadioactive && !tech.isDroneTeleport)
+                return (tech.haveGunCheck("shotgun") && !tech.isNailShot && !tech.isIceShot && !tech.isRivets && !tech.isFoamShot && !tech.isSporeWorm && !tech.isSporeFlea && !tech.isNeedles) || ((tech.haveGunCheck("super balls") || tech.isSuperMine) && !tech.isSuperBounce && !tech.isFoamBall && !tech.isSuperHarm) || (tech.isRivets && !tech.isNailCrit) || (m.fieldUpgrades[m.fieldMode].name === "molecular assembler" && simulation.molecularMode === 3) || (tech.haveGunCheck("drones") && !tech.isForeverDrones && !tech.isDroneRadioactive && !tech.isDroneTeleport)
             },
             requires: "shotgun, super balls, rivets, drones, not irradiated drones, burst drones, polyurethane, Zectron",
             effect() {
@@ -4811,10 +4838,29 @@ const tech = {
             }
         },
         {
-            name: "Zectron",
-            description: `<strong>+100%</strong> <strong>super ball</strong> density and <strong class='color-d'>damage</strong>, but<br>after colliding with <strong>super balls</strong> <strong>lose</strong> <strong class='color-h'>health</strong>`,
+            name: "rebound",
+            description: `after they collide with a mob, <strong>super balls</strong><br>gain <strong>speed</strong>, <strong>duration</strong>, and <strong>+33%</strong> <strong class='color-d'>damage</strong>`,
             isGunTech: true,
-            maxCount: 9,
+            maxCount: 1,
+            count: 0,
+            frequency: 2,
+            frequencyDefault: 2,
+            allowed() {
+                return (tech.haveGunCheck("super balls") || tech.isSuperMine) && !tech.isIncendiary && !tech.isFoamBall
+            },
+            requires: "super balls, not incendiary",
+            effect() {
+                tech.isSuperBounce = true
+            },
+            remove() {
+                tech.isSuperBounce = false
+            }
+        },
+        {
+            name: "Zectron",
+            description: `<strong>+75%</strong> <strong>super ball</strong> density and <strong class='color-d'>damage</strong>, but<br>after colliding with <strong>super balls</strong> <strong>-25%</strong> <strong class='color-f'>energy</strong>`,
+            isGunTech: true,
+            maxCount: 1,
             count: 0,
             frequency: 2,
             frequencyDefault: 2,
@@ -4823,10 +4869,10 @@ const tech = {
             },
             requires: "super balls not incendiary ammunition",
             effect() {
-                tech.superHarm++
+                tech.isSuperHarm = true
             },
             remove() {
-                tech.superHarm = 0
+                tech.isSuperHarm = false
             }
         },
         {
@@ -4838,7 +4884,7 @@ const tech = {
             frequency: 2,
             frequencyDefault: 2,
             allowed() {
-                return (tech.haveGunCheck("super balls") || tech.isSuperMine) || (tech.haveGunCheck("harpoon") && !tech.fragments)
+                return ((tech.haveGunCheck("super balls") || tech.isSuperMine) && !tech.isSuperBounce) || (tech.haveGunCheck("harpoon") && !tech.fragments)
             },
             requires: "super balls, harpoon, not fragmentation",
             effect() {
@@ -6292,7 +6338,7 @@ const tech = {
         },
         {
             name: "surfactant",
-            description: `use ${powerUps.orb.research(2)}to trade your <strong>foam</strong> <strong class='color-g'>gun</strong><br>for <strong>3</strong> <strong class='color-bot'>foam-bots</strong> and <strong>foam-bot upgrade</strong>`,
+            description: `use ${powerUps.orb.research(2)}to trade your <strong>foam</strong> <strong class='color-g'>gun</strong><br>for <strong>2</strong> <strong class='color-bot'>foam-bots</strong> and <strong>foam-bot upgrade</strong>`,
             isGunTech: true,
             isRemoveGun: true,
             maxCount: 1,
@@ -11336,7 +11382,7 @@ const tech = {
     buffedGun: 0,
     isGunChoice: null,
     railChargeRate: null,
-    superHarm: null,
+    isSuperHarm: null,
     isZombieMobs: null,
     isSuperMine: null,
     sentryAmmo: null,
@@ -11345,4 +11391,6 @@ const tech = {
     isDiaphragm: null,
     hardLanding: null,
     isNoGroundDamage: null,
+    isSuperBounce: null,
+    isDivisor: null
 }
