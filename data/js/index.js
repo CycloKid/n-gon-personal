@@ -417,13 +417,13 @@ ${simulation.isCheating ? "<br><br><em>lore disabled</em>" : ""}
 </span></div>`;
         // deaths: ${mobs.mobDeaths} &nbsp;
         if (tech.isPauseSwitchField && !simulation.isChoosing) {
-            const style = localSettings.isHideImages ? `style="height:auto;"` : `style="background-image: url('img/field/${m.fieldUpgrades[m.fieldMode].name}${m.fieldMode === 0 ? m.fieldUpgrades[0].imageNumber : ""}.webp');"`
+            const style = localSettings.isHideImages ? `style="height:auto;"` : `style="background-image: url('data/img/field/${m.fieldUpgrades[m.fieldMode].name}${m.fieldMode === 0 ? m.fieldUpgrades[0].imageNumber : ""}.webp');"`
             text += `<div class="pause-grid-module card-background" id ="pause-field" ${style} >
                            <div class="card-text" style = "animation: fieldColorCycle 1s linear infinite alternate;">
                            <div class="grid-title"><div class="circle-grid field"></div> &nbsp; ${build.nameLink(m.fieldUpgrades[m.fieldMode].name)}</div>
                            ${m.fieldUpgrades[m.fieldMode].description}</div> </div>`
         } else {
-            const style = localSettings.isHideImages ? `style="height:auto;"` : `style="background-image: url('img/field/${m.fieldUpgrades[m.fieldMode].name}${m.fieldMode === 0 ? m.fieldUpgrades[0].imageNumber : ""}.webp');"`
+            const style = localSettings.isHideImages ? `style="height:auto;"` : `style="background-image: url('data/img/field/${m.fieldUpgrades[m.fieldMode].name}${m.fieldMode === 0 ? m.fieldUpgrades[0].imageNumber : ""}.webp');"`
             text += `<div class="pause-grid-module card-background" id ="pause-field" ${style} >
                            <div class="card-text">
                            <div class="grid-title"><div class="circle-grid field"></div> &nbsp; ${build.nameLink(m.fieldUpgrades[m.fieldMode].name)}</div>
@@ -433,7 +433,7 @@ ${simulation.isCheating ? "<br><br><em>lore disabled</em>" : ""}
         //     text += `<div class="pause-grid-module"><div class="grid-title"><div class="circle-grid gun"></div> &nbsp; ${build.nameLink(b.guns[b.inventory[i]].name)} - <span style="font-size:100%;font-weight: 100;">${b.guns[b.inventory[i]].ammo}</span></div> ${b.guns[b.inventory[i]].description}</div>`
         // }
         for (let i = 0, len = b.inventory.length; i < len; i++) {
-            const style = localSettings.isHideImages ? `style="height:auto;"` : `style="background-image: url('img/gun/${b.guns[b.inventory[i]].name}.webp');"`
+            const style = localSettings.isHideImages ? `style="height:auto;"` : `style="background-image: url('data/img/gun/${b.guns[b.inventory[i]].name}.webp');"`
             text += `<div class="pause-grid-module card-background" ${style} >
                            <div class="card-text">
                            <div class="grid-title"><div class="circle-grid gun"></div> &nbsp; ${build.nameLink(b.guns[b.inventory[i]].name)} - <span style="font-size:100%;font-weight: 100;">${b.guns[b.inventory[i]].ammo}</span></div>
@@ -489,7 +489,7 @@ ${simulation.isCheating ? "<br><br><em>lore disabled</em>" : ""}
                 // } else {
                 //     text += `<div class="pause-grid-module" id ="${i}-pause-tech" onclick="powerUps.pauseEjectTech(${i})" ${style}><div class="grid-title"><div class="circle-grid tech"></div> &nbsp; ${tech.tech[i].link} ${techCountText}</div>${tech.tech[i].descriptionFunction ? tech.tech[i].descriptionFunction() :tech.tech[i].description}</div></div>`
                 // }
-                const style = (localSettings.isHideImages || tech.tech[i].isJunk || tech.tech[i].isLore) ? `style="height:auto;"` : `style = "background-image: url('img/${tech.tech[i].name}.webp');"`
+                const style = (localSettings.isHideImages || tech.tech[i].isJunk || tech.tech[i].isLore) ? `style="height:auto;"` : `style = "background-image: url('data/img/${tech.tech[i].name}.webp');"`
                 const techCountText = tech.tech[i].count > 1 ? `(${tech.tech[i].count}x)` : "";
                 if (tech.tech[i].isNonRefundable) {
                     text += `<div class="pause-grid-module" id ="${i}-pause-tech"  style = "border: 0px; opacity:0.5; font-size: 60%; line-height: 130%; margin: 1px; padding: 6px;"><div class="grid-title">${tech.tech[i].link} ${techCountText}</div>${tech.tech[i].descriptionFunction ? tech.tech[i].descriptionFunction() : tech.tech[i].description}</div></div>`
@@ -831,14 +831,14 @@ ${simulation.isCheating ? "<br><br><em>lore disabled</em>" : ""}
 </div>`
         const hideStyle = `style="height:auto; border: none; background-color: transparent;"`
         for (let i = 0, len = m.fieldUpgrades.length; i < len; i++) {
-            const style = localSettings.isHideImages ? hideStyle : `style="background-image: url('img/field/${m.fieldUpgrades[i].name}${i === 0 ? m.fieldUpgrades[0].imageNumber : ""}.webp');"`
+            const style = localSettings.isHideImages ? hideStyle : `style="background-image: url('data/img/field/${m.fieldUpgrades[i].name}${i === 0 ? m.fieldUpgrades[0].imageNumber : ""}.webp');"`
             text += `<div id="field-${i}" class="experiment-grid-module card-background ${m.fieldMode === i ? "build-field-selected" : ""}" onclick="build.choosePowerUp(${i},'field')" ${style} >
                     <div class="card-text">
                     <div class="grid-title"><div class="circle-grid field"></div> &nbsp; ${build.nameLink(m.fieldUpgrades[i].name)}</div>
                     ${m.fieldUpgrades[i].description}</div> </div>`
         }
         for (let i = 0, len = b.guns.length; i < len; i++) {
-            const style = localSettings.isHideImages ? hideStyle : `style="background-image: url('img/gun/${b.guns[i].name}.webp');"`
+            const style = localSettings.isHideImages ? hideStyle : `style="background-image: url('data/img/gun/${b.guns[i].name}.webp');"`
             text += `<div id="gun-${i}" class="experiment-grid-module card-background ${b.guns[i].have ? "build-gun-selected" : ""}" onclick="build.choosePowerUp(${i},'gun')" ${style} >
                     <div class="card-text">
                     <div class="grid-title"><div class="circle-grid gun"></div> &nbsp; ${build.nameLink(b.guns[i].name)}</div>
@@ -846,7 +846,7 @@ ${simulation.isCheating ? "<br><br><em>lore disabled</em>" : ""}
         }
         for (let i = 0, len = tech.tech.length; i < len; i++) {
             if ((!tech.tech[i].isJunk || localSettings.isJunkExperiment) && !tech.tech[i].isLore) {
-                const style = (localSettings.isHideImages || tech.tech[i].isJunk) ? hideStyle : `style="background-image: url('img/${tech.tech[i].name}.webp');"`
+                const style = (localSettings.isHideImages || tech.tech[i].isJunk) ? hideStyle : `style="background-image: url('data/img/${tech.tech[i].name}.webp');"`
                 if ((tech.tech[i].allowed() || tech.tech[i].count > 0) && (!tech.tech[i].isNonRefundable || localSettings.isJunkExperiment)) { // || tech.tech[i].name === "+1 cardinality") { //|| tech.tech[i].name === "leveraged investment"
                     text += `<div id="tech-${i}" class="experiment-grid-module card-background ${tech.tech[i].count ? "build-tech-selected" : ""}" onclick="build.choosePowerUp(${i},'tech')" ${style}>`
                 } else { //disabled
@@ -1287,7 +1287,7 @@ window.addEventListener("keydown", function (event) {
                             }
                             m.energy = energy //return to current energy
                             // document.getElementById("pause-field").innerHTML = `<div class="grid-title"><div class="circle-grid field"></div> &nbsp; ${m.fieldUpgrades[m.fieldMode].name}</div> ${m.fieldUpgrades[m.fieldMode].description}`
-                            document.getElementById("pause-field").style.backgroundImage = `url('img/field/${m.fieldUpgrades[m.fieldMode].name}${m.fieldMode === 0 ? Math.floor(Math.random() * 10) : ""}.webp')`
+                            document.getElementById("pause-field").style.backgroundImage = `url('data/img/field/${m.fieldUpgrades[m.fieldMode].name}${m.fieldMode === 0 ? Math.floor(Math.random() * 10) : ""}.webp')`
                             document.getElementById("pause-field").innerHTML = `
                             <div class="card-text" style = "animation: fieldColorCycle 1s linear infinite alternate;">
                             <div class="grid-title"><div class="circle-grid field"></div> &nbsp; ${build.nameLink(m.fieldUpgrades[m.fieldMode].name)}</div>
@@ -1818,14 +1818,14 @@ const sound = {
 // if (!localSettings.isHideImages) {
 //     for (let i = 0, len = b.guns.length; i < len; i++) {
 //         const preloadLink = document.createElement("link");
-//         preloadLink.href = "img/gun/" + b.guns[i].name + ".webp";
+//         preloadLink.href = "data/img/gun/" + b.guns[i].name + ".webp";
 //         preloadLink.rel = "preload";
 //         preloadLink.as = "image";
 //         document.head.appendChild(preloadLink);
 //     }
 //     for (let i = 1, len = m.fieldUpgrades.length; i < len; i++) {
 //         const preloadLink = document.createElement("link");
-//         preloadLink.href = "img/field/" + m.fieldUpgrades[i].name + ".webp";
+//         preloadLink.href = "data/img/field/" + m.fieldUpgrades[i].name + ".webp";
 //         preloadLink.rel = "preload";
 //         preloadLink.as = "image";
 //         document.head.appendChild(preloadLink);
@@ -1833,7 +1833,7 @@ const sound = {
 //     for (let i = 0, len = tech.tech.length; i < len; i++) {
 //         if (!tech.tech[i].isJunk) {
 //             const preloadLink = document.createElement("link");
-//             preloadLink.href = "img/" + tech.tech[i].name + ".webp";
+//             preloadLink.href = "data/img/" + tech.tech[i].name + ".webp";
 //             preloadLink.rel = "preload";
 //             preloadLink.as = "image";
 //             document.head.appendChild(preloadLink);
@@ -1846,10 +1846,10 @@ const sound = {
 if (!localSettings.isHideImages) {
     addEventListener("load", () => {
         let urls = new Array()
-        for (let i = 0, len = b.guns.length; i < len; i++) urls.push("img/gun/" + b.guns[i].name + ".webp")
-        for (let i = 1, len = m.fieldUpgrades.length; i < len; i++) urls.push("img/field/" + m.fieldUpgrades[i].name + ".webp")
+        for (let i = 0, len = b.guns.length; i < len; i++) urls.push("data/img/gun/" + b.guns[i].name + ".webp")
+        for (let i = 1, len = m.fieldUpgrades.length; i < len; i++) urls.push("data/img/field/" + m.fieldUpgrades[i].name + ".webp")
         for (let i = 0, len = tech.tech.length; i < len; i++) {
-            if (!tech.tech[i].isJunk && !tech.tech[i].isLore) urls.push("img/" + tech.tech[i].name + ".webp")
+            if (!tech.tech[i].isJunk && !tech.tech[i].isLore) urls.push("data/img/" + tech.tech[i].name + ".webp")
         }
         let images = new Array()
         for (let i = 0; i < urls.length; i++) {
