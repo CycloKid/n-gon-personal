@@ -290,7 +290,7 @@ const b = {
         if (m.fieldMode === 6) b.fireCDscale *= 0.8
         if (tech.isFastTime) b.fireCDscale *= 0.666
         if (tech.isFireRateForGuns) b.fireCDscale *= Math.pow(0.76923, Math.max(0, b.inventory.length - 1))
-        if (tech.isFireMoveLock) b.fireCDscale *= 0.25
+        if (tech.isFireMoveLock) b.fireCDscale *= 0.33
     },
     fireAttributes(dir, rotate = true) {
         if (rotate) {
@@ -386,7 +386,7 @@ const b = {
         }
         let sub = Vector.sub(where, player.position);
         let dist = Vector.magnitude(sub);
-        if (tech.isSmartRadius && radius > dist - 50) radius = Math.max(dist - 50, 1)
+        if (tech.isSmartRadius && (radius > dist - 50) && m.immuneCycle < m.cycle) radius = Math.max(dist - 50, 1)
 
         if (tech.isExplodeRadio) { //radiation explosion
             radius *= 1.25; //alert range
@@ -643,12 +643,9 @@ const b = {
                     requestAnimationFrame(cycle)
                 } else {
                     count++
-                    if (count < 21) requestAnimationFrame(cycle);
-                    if (count % 2) {
-                        const unit = Vector.rotate({
-                            x: 1,
-                            y: 0
-                        }, curl * 6.28 * count / 18 + off)
+                    if (count < 29) requestAnimationFrame(cycle);
+                    if (!(count % 3)) {
+                        const unit = Vector.rotate({ x: 1, y: 0 }, curl * 6.28 * count / 27 + off)
                         b.explosion(Vector.add(where, Vector.mult(unit, size * 0.75)), size * 0.7, color, 0.5); //makes bullet do explosive damage at end
                     }
                 }
@@ -748,12 +745,14 @@ const b = {
                             !mob[i].isBadTarget &&
                             !mob[i].isInvulnerable &&
                             this.position.y < mob[i].bounds.min.y &&
-                            this.position.x > mob[i].position.x - mob[i].radius / 2 &&
-                            this.position.x < mob[i].position.x + mob[i].radius / 2 &&
+                            this.position.x > mob[i].position.x - mob[i].radius - 10 &&
+                            this.position.x < mob[i].position.x + mob[i].radius + 10 &&
                             Matter.Query.ray(map, this.position, mob[i].position).length === 0 &&
                             Matter.Query.ray(body, this.position, mob[i].position).length === 0
                         ) {
-                            Matter.Body.setVelocity(this, { x: 0, y: 4 + Math.max(10, this.speed) });
+                            const unit = Vector.normalise(Vector.sub(mob[i].position, this.position))
+                            Matter.Body.setVelocity(this, Vector.mult(unit, 45));
+                            Matter.Body.setVelocity(mob[i], { x: 0, y: 0 });
                             this.do = function () {
                                 this.force.y += this.mass * 0.003;
                             }
@@ -815,12 +814,14 @@ const b = {
                             !mob[i].isBadTarget &&
                             !mob[i].isInvulnerable &&
                             this.position.y < mob[i].bounds.min.y &&
-                            this.position.x > mob[i].position.x - mob[i].radius / 2 &&
-                            this.position.x < mob[i].position.x + mob[i].radius / 2 &&
+                            this.position.x > mob[i].position.x - mob[i].radius - 10 &&
+                            this.position.x < mob[i].position.x + mob[i].radius + 10 &&
                             Matter.Query.ray(map, this.position, mob[i].position).length === 0 &&
                             Matter.Query.ray(body, this.position, mob[i].position).length === 0
                         ) {
-                            Matter.Body.setVelocity(this, { x: 0, y: 4 + Math.max(10, this.speed) });
+                            const unit = Vector.normalise(Vector.sub(mob[i].position, this.position))
+                            Matter.Body.setVelocity(this, Vector.mult(unit, 45));
+                            Matter.Body.setVelocity(mob[i], { x: 0, y: 0 });
                             this.frictionAir = 0
                             this.do = function () {
                                 this.force.y += this.mass * 0.003;
@@ -932,12 +933,15 @@ const b = {
                             !mob[i].isBadTarget &&
                             !mob[i].isInvulnerable &&
                             this.position.y < mob[i].bounds.min.y &&
-                            this.position.x > mob[i].position.x - mob[i].radius / 2 &&
-                            this.position.x < mob[i].position.x + mob[i].radius / 2 &&
+                            this.position.x > mob[i].position.x - mob[i].radius - 10 &&
+                            this.position.x < mob[i].position.x + mob[i].radius + 10 &&
                             Matter.Query.ray(map, this.position, mob[i].position).length === 0 &&
                             Matter.Query.ray(body, this.position, mob[i].position).length === 0
                         ) {
-                            Matter.Body.setVelocity(this, { x: 0, y: 4 + Math.max(10, this.speed) });
+                            const unit = Vector.normalise(Vector.sub(mob[i].position, this.position))
+                            Matter.Body.setVelocity(this, Vector.mult(unit, 45));
+                            Matter.Body.setVelocity(mob[i], { x: 0, y: 0 });
+
                             this.frictionAir = 0
                             this.do = function () {
                                 if (simulation.cycle > this.endCycle - this.suckCycles) { //suck
@@ -985,9 +989,14 @@ const b = {
                             const sub = Vector.sub(that.position, who[i].position);
                             const dist = Vector.magnitude(sub);
                             if (dist < radius && dist > 150 && !who.isInvulnerable) {
-                                knock = Vector.mult(Vector.normalise(sub), mag * who[i].mass / Math.sqrt(dist));
-                                who[i].force.x += knock.x;
-                                who[i].force.y += knock.y;
+                                knock = Vector.mult(Vector.normalise(sub), mag * who[i].mass / Math.sqrt(Math.max(50, dist)));
+                                if (who.isBoss) {
+                                    who[i].force.x += 0.3 * knock.x;
+                                    who[i].force.y += 0.3 * knock.y;
+                                } else {
+                                    who[i].force.x += knock.x;
+                                    who[i].force.y += knock.y;
+                                }
                             }
                         }
                     }
@@ -1045,9 +1054,14 @@ const b = {
                                 const sub = Vector.sub(that.position, who[i].position);
                                 const dist = Vector.magnitude(sub);
                                 if (dist < radius && dist > 150 && !who.isInvulnerable) {
-                                    knock = Vector.mult(Vector.normalise(sub), mag * who[i].mass / Math.sqrt(dist));
-                                    who[i].force.x += knock.x;
-                                    who[i].force.y += knock.y;
+                                    knock = Vector.mult(Vector.normalise(sub), mag * who[i].mass / Math.sqrt(Math.max(50, dist)));
+                                    if (who.isBoss) {
+                                        who[i].force.x += 0.3 * knock.x;
+                                        who[i].force.y += 0.3 * knock.y;
+                                    } else {
+                                        who[i].force.x += knock.x;
+                                        who[i].force.y += knock.y;
+                                    }
                                 }
                             }
                         }
@@ -1082,12 +1096,14 @@ const b = {
                             !mob[i].isBadTarget &&
                             !mob[i].isInvulnerable &&
                             this.position.y < mob[i].bounds.min.y &&
-                            this.position.x > mob[i].position.x - mob[i].radius / 2 &&
-                            this.position.x < mob[i].position.x + mob[i].radius / 2 &&
+                            this.position.x > mob[i].position.x - mob[i].radius - 10 &&
+                            this.position.x < mob[i].position.x + mob[i].radius + 10 &&
                             Matter.Query.ray(map, this.position, mob[i].position).length === 0 &&
                             Matter.Query.ray(body, this.position, mob[i].position).length === 0
                         ) {
-                            Matter.Body.setVelocity(this, { x: 0, y: 4 + Math.max(10, this.speed) });
+                            const unit = Vector.normalise(Vector.sub(mob[i].position, this.position))
+                            Matter.Body.setVelocity(this, Vector.mult(unit, 45));
+                            Matter.Body.setVelocity(mob[i], { x: 0, y: 0 });
 
                             this.do = function () {
                                 this.force.y += this.mass * 0.0025; //extra gravity for harder arcs
@@ -1101,9 +1117,14 @@ const b = {
                                             const sub = Vector.sub(that.position, who[i].position);
                                             const dist = Vector.magnitude(sub);
                                             if (dist < radius && dist > 150 && !who.isInvulnerable) {
-                                                knock = Vector.mult(Vector.normalise(sub), mag * who[i].mass / Math.sqrt(dist));
-                                                who[i].force.x += knock.x;
-                                                who[i].force.y += knock.y;
+                                                knock = Vector.mult(Vector.normalise(sub), mag * who[i].mass / Math.sqrt(Math.max(50, dist)));
+                                                if (who.isBoss) {
+                                                    who[i].force.x += 0.3 * knock.x;
+                                                    who[i].force.y += 0.3 * knock.y;
+                                                } else {
+                                                    who[i].force.x += knock.x;
+                                                    who[i].force.y += knock.y;
+                                                }
                                             }
                                         }
                                     }
@@ -1241,13 +1262,15 @@ const b = {
                             !mob[i].isBadTarget &&
                             !mob[i].isInvulnerable &&
                             this.position.y < mob[i].bounds.min.y &&
-                            this.position.x > mob[i].position.x - mob[i].radius / 2 &&
-                            this.position.x < mob[i].position.x + mob[i].radius / 2 &&
+                            this.position.x > mob[i].position.x - mob[i].radius - 10 &&
+                            this.position.x < mob[i].position.x + mob[i].radius + 10 &&
                             Matter.Query.ray(map, this.position, mob[i].position).length === 0 &&
                             Matter.Query.ray(body, this.position, mob[i].position).length === 0
                         ) {
-                            Matter.Body.setVelocity(this, { x: 0, y: 4 + Math.max(10, this.speed) });
-                            // console.log()
+                            const unit = Vector.normalise(Vector.sub(mob[i].position, this.position))
+                            Matter.Body.setVelocity(this, Vector.mult(unit, 45));
+                            Matter.Body.setVelocity(mob[i], { x: 0, y: 0 });
+
                             isPrecisionTriggered = true
                             if (tech.isRPG) this.thrust = { x: 0, y: 0 }
 
@@ -1853,8 +1876,6 @@ const b = {
                 isInternal: false
             }]
         }
-
-
         bullet[me] = Bodies.fromVertices(where.x, where.y, shape, {
             cycle: 0,
             angle: angle,
@@ -2503,7 +2524,7 @@ const b = {
     }, whereEnd = {
         x: where.x + 3000 * Math.cos(m.angle),
         y: where.y + 3000 * Math.sin(m.angle)
-    }, damage = tech.laserDamage, reflections = tech.laserReflections, isThickBeam = false, push = 1) {
+    }, damage = tech.laserDamage, reflections = tech.laserReflections, isThickBeam = false, push = 1, laserColor = tech.laserColor) {
         const reflectivity = 1 - 1 / (reflections * 3)
         let best = { x: 1, y: 1, dist2: Infinity, who: null, v1: 1, v2: 1 };
         const path = [{ x: where.x, y: where.y }, { x: whereEnd.x, y: whereEnd.y }];
@@ -2592,7 +2613,7 @@ const b = {
                 ctx.lineTo(path[i].x, path[i].y);
             }
         } else if (tech.isLaserLens && b.guns[11].lensDamage !== 1) {
-            ctx.strokeStyle = tech.laserColor;
+            ctx.strokeStyle = laserColor;
             ctx.lineWidth = 2
             ctx.lineDashOffset = 900 * Math.random()
             ctx.setLineDash([50 + 120 * Math.random(), 50 * Math.random()]);
@@ -2617,7 +2638,7 @@ const b = {
             ctx.stroke();
             ctx.globalAlpha = 1;
         } else {
-            ctx.strokeStyle = tech.laserColor;
+            ctx.strokeStyle = laserColor;
             ctx.lineWidth = 2
             ctx.lineDashOffset = 900 * Math.random()
             ctx.setLineDash([50 + 120 * Math.random(), 50 * Math.random()]);
@@ -2877,216 +2898,212 @@ const b = {
     worm(where, isFreeze = tech.isSporeFreeze) { //used with the tech upgrade in mob.death()
         const bIndex = bullet.length;
         const wormSize = 6 + tech.wormSize * 4.2 * Math.random()
-        if (bIndex < 500) { //can't make over 500 spores
-            bullet[bIndex] = Bodies.polygon(where.x, where.y, 3, 3, {
-                inertia: Infinity,
-                isFreeze: isFreeze,
-                restitution: 0.5,
-                // angle: Math.random() * 2 * Math.PI,
-                friction: 0,
-                frictionAir: 0.025,
-                thrust: (tech.isSporeFollow ? 0.0012 : 0.00055) * (1 + 0.5 * (Math.random() - 0.5)),
-                wormSize: wormSize,
-                wormTail: 1 + Math.max(4, Math.min(wormSize - 2 * tech.wormSize, 30)),
-                dmg: (tech.isMutualism ? 9.5 : 3.2) * wormSize,
-                lookFrequency: 100 + Math.floor(37 * Math.random()),
-                classType: "bullet",
-                collisionFilter: {
-                    category: cat.bullet,
-                    mask: cat.map | cat.mob | cat.mobBullet | cat.mobShield //no collide with body
-                },
-                endCycle: simulation.cycle + Math.floor((600 + Math.floor(Math.random() * 420)) * tech.bulletsLastLonger),
-                minDmgSpeed: 0,
-                playerOffPosition: { //used when moving towards player to keep spores separate
-                    x: 100 * (Math.random() - 0.5),
-                    y: 100 * (Math.random() - 0.5)
-                },
-                beforeDmg(who) {
-                    if (who.isInvulnerable) {
-                        Matter.Body.setVelocity(this, Vector.mult(this.velocity, 0.1));
-                    } else {
-                        if (tech.isSpawnBulletsOnDeath && who.alive && who.isDropPowerUp) {
-                            setTimeout(() => {
-                                if (!who.alive) {
-                                    for (let i = 0; i < 3; i++) { //spawn 3 more
-                                        b.worm(this.position)
-                                        bullet[bullet.length - 1].endCycle = Math.min(simulation.cycle + Math.floor(420 * tech.bulletsLastLonger), this.endCycle + 180 + Math.floor(60 * Math.random())) //simulation.cycle + Math.floor(420 * tech.bulletsLastLonger)
-                                    }
+        bullet[bIndex] = Bodies.polygon(where.x, where.y, 3, 3, {
+            inertia: Infinity,
+            isFreeze: isFreeze,
+            restitution: 0.5,
+            // angle: Math.random() * 2 * Math.PI,
+            friction: 0,
+            frictionAir: 0.025,
+            thrust: (tech.isSporeFollow ? 0.0012 : 0.00055) * (1 + 0.5 * (Math.random() - 0.5)),
+            wormSize: wormSize,
+            wormTail: 1 + Math.max(4, Math.min(wormSize - 2 * tech.wormSize, 30)),
+            dmg: (tech.isMutualism ? 9.5 : 3.2) * wormSize,
+            lookFrequency: 100 + Math.floor(37 * Math.random()),
+            classType: "bullet",
+            collisionFilter: {
+                category: cat.bullet,
+                mask: cat.map | cat.mob | cat.mobBullet | cat.mobShield //no collide with body
+            },
+            endCycle: simulation.cycle + Math.floor((600 + Math.floor(Math.random() * 420)) * tech.bulletsLastLonger),
+            minDmgSpeed: 0,
+            playerOffPosition: { //used when moving towards player to keep spores separate
+                x: 100 * (Math.random() - 0.5),
+                y: 100 * (Math.random() - 0.5)
+            },
+            beforeDmg(who) {
+                if (who.isInvulnerable) {
+                    Matter.Body.setVelocity(this, Vector.mult(this.velocity, 0.1));
+                } else {
+                    if (tech.isSpawnBulletsOnDeath && who.alive && who.isDropPowerUp) {
+                        setTimeout(() => {
+                            if (!who.alive) {
+                                for (let i = 0; i < 3; i++) { //spawn 3 more
+                                    b.worm(this.position)
+                                    bullet[bullet.length - 1].endCycle = Math.min(simulation.cycle + Math.floor(420 * tech.bulletsLastLonger), this.endCycle + 180 + Math.floor(60 * Math.random())) //simulation.cycle + Math.floor(420 * tech.bulletsLastLonger)
                                 }
-                                this.endCycle = 0; //bullet ends cycle after doing damage 
-                            }, 1);
-                        } else {
+                            }
                             this.endCycle = 0; //bullet ends cycle after doing damage 
-                        }
-                        if (this.isFreeze) mobs.statusSlow(who, 90)
-                    }
-                },
-                onEnd() {
-                    if (tech.isMutualism && this.isMutualismActive && !tech.isEnergyHealth) {
-                        m.health += 0.02
-                        if (m.health > m.maxHealth) m.health = m.maxHealth;
-                        m.displayHealth();
-                    }
-                },
-                tailCycle: 6.28 * Math.random(),
-                do() {
-                    this.tailCycle += this.speed * 0.025
-                    ctx.beginPath(); //draw nematode
-                    ctx.moveTo(this.position.x, this.position.y);
-                    // const dir = Vector.mult(Vector.normalise(this.velocity), -Math.min(100, this.wormTail * this.speed))
-                    const speed = Math.min(7, this.speed)
-                    const dir = Vector.mult(Vector.normalise(this.velocity), -0.6 * this.wormTail * speed)
-                    const tail = Vector.add(this.position, dir)
-                    const wiggle = Vector.add(Vector.add(tail, dir), Vector.rotate(dir, Math.sin(this.tailCycle)))
-                    // const wiggle = Vector.add(tail, Vector.rotate(dir, Math.sin((m.cycle - this.endCycle) * 0.03 * this.speed)))
-                    ctx.quadraticCurveTo(tail.x, tail.y, wiggle.x, wiggle.y) // ctx.quadraticCurveTo(controlPoint.x, controlPoint.y, this.vertices[0].x, this.vertices[0].y)
-                    // ctx.lineTo(tail.x, tail.y);
-                    ctx.lineWidth = this.wormSize;
-                    ctx.strokeStyle = "#000";
-                    ctx.stroke();
-
-                    if (this.lockedOn && this.lockedOn.alive) {
-                        this.force = Vector.mult(Vector.normalise(Vector.sub(this.lockedOn.position, this.position)), this.mass * this.thrust)
+                        }, 1);
                     } else {
-                        if (!(simulation.cycle % this.lookFrequency)) { //find mob targets
-                            this.closestTarget = null;
-                            this.lockedOn = null;
-                            let closeDist = Infinity;
-                            for (let i = 0, len = mob.length; i < len; ++i) {
-                                if (!mob[i].isBadTarget && Matter.Query.ray(map, this.position, mob[i].position).length === 0 && !mob[i].isInvulnerable) {
-                                    const targetVector = Vector.sub(this.position, mob[i].position)
-                                    const dist = Vector.magnitude(targetVector) * (Math.random() + 0.5);
-                                    if (dist < closeDist) {
-                                        this.closestTarget = mob[i].position;
-                                        closeDist = dist;
-                                        this.lockedOn = mob[i]
-                                        if (0.3 > Math.random()) break //doesn't always target the closest mob
-                                    }
+                        this.endCycle = 0; //bullet ends cycle after doing damage 
+                    }
+                    if (this.isFreeze) mobs.statusSlow(who, 90)
+                }
+            },
+            onEnd() {
+                if (tech.isMutualism && this.isMutualismActive && !tech.isEnergyHealth) {
+                    m.health += 0.02
+                    if (m.health > m.maxHealth) m.health = m.maxHealth;
+                    m.displayHealth();
+                }
+            },
+            tailCycle: 6.28 * Math.random(),
+            do() {
+                this.tailCycle += this.speed * 0.025
+                ctx.beginPath(); //draw nematode
+                ctx.moveTo(this.position.x, this.position.y);
+                // const dir = Vector.mult(Vector.normalise(this.velocity), -Math.min(100, this.wormTail * this.speed))
+                const speed = Math.min(7, this.speed)
+                const dir = Vector.mult(Vector.normalise(this.velocity), -0.6 * this.wormTail * speed)
+                const tail = Vector.add(this.position, dir)
+                const wiggle = Vector.add(Vector.add(tail, dir), Vector.rotate(dir, Math.sin(this.tailCycle)))
+                // const wiggle = Vector.add(tail, Vector.rotate(dir, Math.sin((m.cycle - this.endCycle) * 0.03 * this.speed)))
+                ctx.quadraticCurveTo(tail.x, tail.y, wiggle.x, wiggle.y) // ctx.quadraticCurveTo(controlPoint.x, controlPoint.y, this.vertices[0].x, this.vertices[0].y)
+                // ctx.lineTo(tail.x, tail.y);
+                ctx.lineWidth = this.wormSize;
+                ctx.strokeStyle = "#000";
+                ctx.stroke();
+
+                if (this.lockedOn && this.lockedOn.alive) {
+                    this.force = Vector.mult(Vector.normalise(Vector.sub(this.lockedOn.position, this.position)), this.mass * this.thrust)
+                } else {
+                    if (!(simulation.cycle % this.lookFrequency)) { //find mob targets
+                        this.closestTarget = null;
+                        this.lockedOn = null;
+                        let closeDist = Infinity;
+                        for (let i = 0, len = mob.length; i < len; ++i) {
+                            if (!mob[i].isBadTarget && Matter.Query.ray(map, this.position, mob[i].position).length === 0 && !mob[i].isInvulnerable) {
+                                const targetVector = Vector.sub(this.position, mob[i].position)
+                                const dist = Vector.magnitude(targetVector) * (Math.random() + 0.5);
+                                if (dist < closeDist) {
+                                    this.closestTarget = mob[i].position;
+                                    closeDist = dist;
+                                    this.lockedOn = mob[i]
+                                    if (0.3 > Math.random()) break //doesn't always target the closest mob
                                 }
                             }
                         }
-                        if (tech.isSporeFollow && this.lockedOn === null) { //move towards player //checking for null means that the spores don't go after the player until it has looked and not found a target
-                            const dx = this.position.x - m.pos.x;
-                            const dy = this.position.y - m.pos.y;
-                            if (dx * dx + dy * dy > 10000) {
-                                this.force = Vector.mult(Vector.normalise(Vector.sub(m.pos, Vector.add(this.playerOffPosition, this.position))), this.mass * this.thrust)
-                            }
-                        } else {
-                            const unit = Vector.normalise(this.velocity)
-                            const force = Vector.mult(Vector.rotate(unit, 0.005 * this.playerOffPosition.x), 0.000003)
-                            this.force.x += force.x
-                            this.force.y += force.y
-                        }
                     }
-                },
-            });
-            const SPEED = 2 + 1 * Math.random();
-            const ANGLE = 2 * Math.PI * Math.random()
-            Matter.Body.setVelocity(bullet[bIndex], {
-                x: SPEED * Math.cos(ANGLE),
-                y: SPEED * Math.sin(ANGLE)
-            });
-            Composite.add(engine.world, bullet[bIndex]); //add bullet to world
-            if (tech.isMutualism && m.health > 0.5) {
-                m.health -= 0.02
-                m.displayHealth();
-                bullet[bIndex].isMutualismActive = true
-            }
+                    if (tech.isSporeFollow && this.lockedOn === null) { //move towards player //checking for null means that the spores don't go after the player until it has looked and not found a target
+                        const dx = this.position.x - m.pos.x;
+                        const dy = this.position.y - m.pos.y;
+                        if (dx * dx + dy * dy > 10000) {
+                            this.force = Vector.mult(Vector.normalise(Vector.sub(m.pos, Vector.add(this.playerOffPosition, this.position))), this.mass * this.thrust)
+                        }
+                    } else {
+                        const unit = Vector.normalise(this.velocity)
+                        const force = Vector.mult(Vector.rotate(unit, 0.005 * this.playerOffPosition.x), 0.000003)
+                        this.force.x += force.x
+                        this.force.y += force.y
+                    }
+                }
+            },
+        });
+        const SPEED = 2 + 1 * Math.random();
+        const ANGLE = 2 * Math.PI * Math.random()
+        Matter.Body.setVelocity(bullet[bIndex], {
+            x: SPEED * Math.cos(ANGLE),
+            y: SPEED * Math.sin(ANGLE)
+        });
+        Composite.add(engine.world, bullet[bIndex]); //add bullet to world
+        if (tech.isMutualism && m.health > 0.5) {
+            m.health -= 0.02
+            m.displayHealth();
+            bullet[bIndex].isMutualismActive = true
         }
     },
     spore(where, velocity = null) { //used with the tech upgrade in mob.death()
         const bIndex = bullet.length;
         const size = 4
-        if (bIndex < 500) { //can't make over 500 spores
-            bullet[bIndex] = Bodies.polygon(where.x, where.y, size, size, {
-                // density: 0.0015,			//frictionAir: 0.01,
-                inertia: Infinity,
-                isFreeze: tech.isSporeFreeze,
-                restitution: 0.5,
-                angle: Math.random() * 2 * Math.PI,
-                friction: 0,
-                frictionAir: 0.025,
-                thrust: (tech.isSporeFollow ? 0.0011 : 0.0005) * (1 + 0.3 * (Math.random() - 0.5)),
-                dmg: (tech.isMutualism ? 20 : 7), //bonus damage from tech.isMutualism
-                lookFrequency: 100 + Math.floor(117 * Math.random()),
-                classType: "bullet",
-                isSpore: true,
-                collisionFilter: {
-                    category: cat.bullet,
-                    mask: cat.map | cat.mob | cat.mobBullet | cat.mobShield //no collide with body
-                },
-                endCycle: simulation.cycle + Math.floor((540 + Math.floor(Math.random() * 420)) * tech.bulletsLastLonger),
-                minDmgSpeed: 0,
-                playerOffPosition: { //used when moving towards player to keep spores separate
-                    x: 100 * (Math.random() - 0.5),
-                    y: 100 * (Math.random() - 0.5)
-                },
-                beforeDmg(who) {
-                    if (!who.isInvulnerable) {
-                        this.endCycle = 0; //bullet ends cycle after doing damage 
-                        if (this.isFreeze) mobs.statusSlow(who, 90)
-                    }
-                },
-                onEnd() {
-                    if (tech.isMutualism && this.isMutualismActive && !tech.isEnergyHealth) {
-                        m.health += 0.01
-                        if (m.health > m.maxHealth) m.health = m.maxHealth;
-                        m.displayHealth();
-                    }
-                },
-                do() {
-                    if (this.lockedOn && this.lockedOn.alive) {
-                        this.force = Vector.mult(Vector.normalise(Vector.sub(this.lockedOn.position, this.position)), this.mass * this.thrust)
-                    } else {
-                        if (!(simulation.cycle % this.lookFrequency)) { //find mob targets
-                            this.closestTarget = null;
-                            this.lockedOn = null;
-                            let closeDist = Infinity;
-                            for (let i = 0, len = mob.length; i < len; ++i) {
-                                if (!mob[i].isBadTarget && Matter.Query.ray(map, this.position, mob[i].position).length === 0 && !mob[i].isInvulnerable) {
-                                    const targetVector = Vector.sub(this.position, mob[i].position)
-                                    const dist = Vector.magnitude(targetVector) * (Math.random() + 0.5);
-                                    if (dist < closeDist) {
-                                        this.closestTarget = mob[i].position;
-                                        closeDist = dist;
-                                        this.lockedOn = mob[i]
-                                        if (0.3 > Math.random()) break //doesn't always target the closest mob
-                                    }
+        bullet[bIndex] = Bodies.polygon(where.x, where.y, size, size, {
+            // density: 0.0015,			//frictionAir: 0.01,
+            inertia: Infinity,
+            isFreeze: tech.isSporeFreeze,
+            restitution: 0.5,
+            angle: Math.random() * 2 * Math.PI,
+            friction: 0,
+            frictionAir: 0.025,
+            thrust: (tech.isSporeFollow ? 0.0011 : 0.0005) * (1 + 0.3 * (Math.random() - 0.5)),
+            dmg: (tech.isMutualism ? 20 : 7), //bonus damage from tech.isMutualism
+            lookFrequency: 100 + Math.floor(117 * Math.random()),
+            classType: "bullet",
+            isSpore: true,
+            collisionFilter: {
+                category: cat.bullet,
+                mask: cat.map | cat.mob | cat.mobBullet | cat.mobShield //no collide with body
+            },
+            endCycle: simulation.cycle + Math.floor((540 + Math.floor(Math.random() * 420)) * tech.bulletsLastLonger),
+            minDmgSpeed: 0,
+            playerOffPosition: { //used when moving towards player to keep spores separate
+                x: 100 * (Math.random() - 0.5),
+                y: 100 * (Math.random() - 0.5)
+            },
+            beforeDmg(who) {
+                if (!who.isInvulnerable) {
+                    this.endCycle = 0; //bullet ends cycle after doing damage 
+                    if (this.isFreeze) mobs.statusSlow(who, 90)
+                }
+            },
+            onEnd() {
+                if (tech.isMutualism && this.isMutualismActive && !tech.isEnergyHealth) {
+                    m.health += 0.01
+                    if (m.health > m.maxHealth) m.health = m.maxHealth;
+                    m.displayHealth();
+                }
+            },
+            do() {
+                if (this.lockedOn && this.lockedOn.alive) {
+                    this.force = Vector.mult(Vector.normalise(Vector.sub(this.lockedOn.position, this.position)), this.mass * this.thrust)
+                } else {
+                    if (!(simulation.cycle % this.lookFrequency)) { //find mob targets
+                        this.closestTarget = null;
+                        this.lockedOn = null;
+                        let closeDist = Infinity;
+                        for (let i = 0, len = mob.length; i < len; ++i) {
+                            if (!mob[i].isBadTarget && Matter.Query.ray(map, this.position, mob[i].position).length === 0 && !mob[i].isInvulnerable) {
+                                const targetVector = Vector.sub(this.position, mob[i].position)
+                                const dist = Vector.magnitude(targetVector) * (Math.random() + 0.5);
+                                if (dist < closeDist) {
+                                    this.closestTarget = mob[i].position;
+                                    closeDist = dist;
+                                    this.lockedOn = mob[i]
+                                    if (0.3 > Math.random()) break //doesn't always target the closest mob
                                 }
                             }
                         }
-                        if (tech.isSporeFollow && this.lockedOn === null) { //move towards player
-                            //checking for null means that the spores don't go after the player until it has looked and not found a target
-                            const dx = this.position.x - m.pos.x;
-                            const dy = this.position.y - m.pos.y;
-                            if (dx * dx + dy * dy > 10000) {
-                                this.force = Vector.mult(Vector.normalise(Vector.sub(m.pos, Vector.add(this.playerOffPosition, this.position))), this.mass * this.thrust)
-                            }
-                        } else {
-                            this.force.y += this.mass * 0.0001; //gravity
-                        }
-
                     }
-                },
+                    if (tech.isSporeFollow && this.lockedOn === null) { //move towards player
+                        //checking for null means that the spores don't go after the player until it has looked and not found a target
+                        const dx = this.position.x - m.pos.x;
+                        const dy = this.position.y - m.pos.y;
+                        if (dx * dx + dy * dy > 10000) {
+                            this.force = Vector.mult(Vector.normalise(Vector.sub(m.pos, Vector.add(this.playerOffPosition, this.position))), this.mass * this.thrust)
+                        }
+                    } else {
+                        this.force.y += this.mass * 0.0001; //gravity
+                    }
+
+                }
+            },
+        });
+        if (velocity) {
+            Matter.Body.setVelocity(bullet[bIndex], velocity);
+        } else {
+            const SPEED = 4 + 8 * Math.random();
+            const ANGLE = 2 * Math.PI * Math.random()
+            Matter.Body.setVelocity(bullet[bIndex], {
+                x: SPEED * Math.cos(ANGLE),
+                y: SPEED * Math.sin(ANGLE)
             });
-            if (velocity) {
-                Matter.Body.setVelocity(bullet[bIndex], velocity);
-            } else {
-                const SPEED = 4 + 8 * Math.random();
-                const ANGLE = 2 * Math.PI * Math.random()
-                Matter.Body.setVelocity(bullet[bIndex], {
-                    x: SPEED * Math.cos(ANGLE),
-                    y: SPEED * Math.sin(ANGLE)
-                });
-            }
+        }
 
-            Composite.add(engine.world, bullet[bIndex]); //add bullet to world
+        Composite.add(engine.world, bullet[bIndex]); //add bullet to world
 
-            if (tech.isMutualism && m.health > 0.05) {
-                m.health -= 0.01
-                m.displayHealth();
-                bullet[bIndex].isMutualismActive = true
-            }
+        if (tech.isMutualism && m.health > 0.05) {
+            m.health -= 0.01
+            m.displayHealth();
+            bullet[bIndex].isMutualismActive = true
         }
     },
     iceIX(speed = 0, dir = m.angle + Math.PI * 2 * Math.random(), where = {
@@ -4923,13 +4940,24 @@ const b = {
                                     const push = Vector.mult(Vector.perp(direction), 0.015 * countReduction / Math.sqrt(tech.missileCount))
                                     for (let i = 0; i < tech.missileCount; i++) {
                                         setTimeout(() => {
-                                            b.missile(this.position, angle, -8, size)
+                                            if (tech.isMissileSide) {
+                                                b.missile(this.position, angle + Math.PI / 2, 15, size)
+                                                b.missile(this.position, angle - Math.PI / 2, 15, size)
+                                            } else {
+                                                b.missile(this.position, angle, -8, size)
+                                            }
+
                                             bullet[bullet.length - 1].force.x += push.x * (i - (tech.missileCount - 1) / 2);
                                             bullet[bullet.length - 1].force.y += push.y * (i - (tech.missileCount - 1) / 2);
                                         }, 40 * tech.missileCount * Math.random());
                                     }
                                 } else {
-                                    b.missile(this.position, angle, -8) //    missile(where, angle, speed, size = 1) {
+                                    if (tech.isMissileSide) {
+                                        b.missile(this.position, angle + Math.PI / 2, 15)
+                                        b.missile(this.position, angle - Math.PI / 2, 15)
+                                    } else {
+                                        b.missile(this.position, angle, -8) //    missile(where, angle, speed, size = 1) {
+                                    }
                                 }
                                 break;
                             }
@@ -6013,31 +6041,7 @@ const b = {
             ammoPack: 1.6,
             defaultAmmoPack: 1.6,
             have: false,
-            do() {
-                //fade cross hairs
-
-
-
-                // draw loop around player head
-                // const left = m.fireCDcycle !== Infinity ? 0.05 * Math.max(m.fireCDcycle - m.cycle, 0) : 0
-                // if (left > 0) {
-                //     ctx.beginPath();
-                //     // ctx.arc(simulation.mouseInGame.x, simulation.mouseInGame.y, 30, 0, left);
-                //     ctx.arc(m.pos.x, m.pos.y, 28, m.angle - left, m.angle);
-                //     // ctx.fillStyle = "rgba(0,0,0,0.3)" //"#333"
-                //     // ctx.fill();
-                //     ctx.strokeStyle = "#333";
-                //     ctx.lineWidth = 2;
-                //     ctx.stroke();
-                // }
-
-
-                //draw hip circle
-                // ctx.beginPath();
-                // ctx.arc(m.pos.x + m.hip.x, m.pos.y + m.hip.y, 11, 0, 2 * Math.PI);
-                // ctx.fillStyle = "rgba(0,0,0,0.3)" //"#333"
-                // ctx.fill();
-            },
+            do() { },
             fire() {
                 let knock, spread
                 const coolDown = function () {
@@ -6089,7 +6093,66 @@ const b = {
                     }
                 }
                 const chooseBulletType = function () {
-                    if (tech.isRivets) {
+                    if (tech.isLaserShot) {
+                        simulation.ephemera.push({
+                            count: 150 * tech.bulletsLastLonger, //cycles before it self removes
+                            where: { x: m.pos.x + 15 * Math.cos(m.angle), y: m.pos.y + 15 * Math.sin(m.angle) },
+                            end: {
+                                x: m.pos.x + 5000 * Math.cos(m.angle),
+                                y: m.pos.y + 5000 * Math.sin(m.angle)
+                            },
+                            dmg: 0.23 * (tech.isShotgunReversed ? 1.5 : 1), //normal laser is 0.18
+                            angle: m.angle,
+                            cleared: level.levelsCleared,
+                            // color: "#0f8",
+                            do() {
+                                this.count--
+                                if (this.count < 0 || this.cleared !== level.levelsCleared) simulation.removeEphemera(this)
+
+                                // const color = `hsl(${270 + 80 * Math.sin(simulation.cycle * 0.03)},100%,50%)`
+                                //!(simulation.cycle % 10)
+                                const color = `hsl(${340 + 40 * Math.sin(simulation.cycle * 0.3)}, 100%, 50%)`
+                                ctx.strokeStyle = color
+                                ctx.lineWidth = 4
+                                // ctx.globalAlpha = 0.5;
+                                ctx.beginPath();
+                                b.laser(this.where, this.end, this.dmg, tech.laserReflections, true, 1, color);
+                                if (tech.beamSplitter) {
+                                    let spread = 0.05
+                                    for (let i = 0; i < tech.beamSplitter; i++) {
+                                        b.laser(this.where, {
+                                            x: this.where.x + 5000 * Math.cos(this.angle + spread),
+                                            y: this.where.y + 5000 * Math.sin(this.angle + spread)
+                                        }, this.dmg, tech.laserReflections, true, 1, color)
+                                        spread *= -1
+                                        if (spread > 0) spread += 0.05
+                                    }
+                                }
+                                ctx.stroke();
+
+                                const size = 20;
+                                ctx.save();
+                                ctx.translate(this.where.x, this.where.y);
+                                ctx.rotate(this.angle);
+                                ctx.beginPath();
+                                ctx.moveTo(size, 0);           // tip (pointing right/forward)
+                                ctx.lineTo(0, size / 2);       // bottom
+                                ctx.lineTo(-size, 0);          // back
+                                ctx.lineTo(0, -size / 2);      // top
+                                ctx.closePath();
+                                ctx.fillStyle = color;
+                                ctx.fill();
+                                ctx.restore();
+
+                                // ctx.beginPath();
+                                // ctx.arc(this.where.x, this.where.y, 4, 0, 2 * Math.PI);
+                                // ctx.fillStyle = color//`hsl(${2 * simulation.cycle},100%,70%)`
+                                // ctx.fill();
+                            },
+                        })
+
+
+                    } else if (tech.isRivets) {
                         const me = bullet.length;
                         // const dir = m.angle + 0.02 * (Math.random() - 0.5)
                         bullet[me] = Bodies.rectangle(m.pos.x + 35 * Math.cos(m.angle), m.pos.y + 35 * Math.sin(m.angle), 56 * tech.bulletSize, 25 * tech.bulletSize, b.fireAttributes(m.angle));
@@ -6270,7 +6333,6 @@ const b = {
                         spray(16); //fires normal shotgun bullets
                     }
                 }
-
 
                 coolDown();
                 b.muzzleFlash(35);
@@ -6756,65 +6818,52 @@ const b = {
             do() { },
             fire() {
                 const countReduction = Math.pow(0.86, tech.missileCount)
-                // if (m.crouch) {
-                //     m.fireCDcycle = m.cycle + tech.missileFireCD * b.fireCDscale / countReduction; // cool down
-                //     // for (let i = 0; i < tech.missileCount; i++) {
-                //     //     b.missile(where, -Math.PI / 2 + 0.2 * (Math.random() - 0.5) * Math.sqrt(tech.missileCount), -2, Math.sqrt(countReduction))
-                //     //     bullet[bullet.length - 1].force.x += 0.004 * countReduction * (i - (tech.missileCount - 1) / 2);
-                //     // }
-
-                //     if (tech.missileCount > 1) {
-                //         for (let i = 0; i < tech.missileCount; i++) {
-                //             setTimeout(() => {
-                //                 const where = { x: m.pos.x, y: m.pos.y - 40 }
-                //                 b.missile(where, -Math.PI / 2 + 0.2 * (Math.random() - 0.5) * Math.sqrt(tech.missileCount), -2, Math.sqrt(countReduction))
-                //                 bullet[bullet.length - 1].force.x += 0.025 * countReduction * (i - (tech.missileCount - 1) / 2);
-                //             }, 20 * tech.missileCount * Math.random());
-                //         }
-                //     } else {
-                //         const where = {
-                //             x: m.pos.x,
-                //             y: m.pos.y - 40
-                //         }
-                //         b.missile(where, -Math.PI / 2 + 0.2 * (Math.random() - 0.5), -2)
-                //     }
-                // } else {
                 m.fireCDcycle = m.cycle + tech.missileFireCD * b.fireCDscale / countReduction; // cool down
-                const direction = { x: Math.cos(m.angle), y: Math.sin(m.angle) }
-                // const where = {
-                //     x: m.pos.x + 30 * direction.x,
-                //     y: m.pos.y + 30 * direction.y
-                // }
+                let direction = { x: Math.cos(m.angle), y: Math.sin(m.angle) }
                 if (tech.missileCount > 1) {
                     const push = Vector.mult(Vector.perp(direction), 0.2 * countReduction / Math.sqrt(tech.missileCount))
                     const sqrtCountReduction = Math.sqrt(countReduction)
-                    // for (let i = 0; i < tech.missileCount; i++) {
-                    //     setTimeout(() => {
-                    //         if (m.crouch) {
-                    //             b.missile(where, m.angle, 20, sqrtCountReduction)
-                    //             // bullet[bullet.length - 1].force.x += 0.7 * push.x * (i - (tech.missileCount - 1) / 2);
-                    //             // bullet[bullet.length - 1].force.y += 0.7 * push.y * (i - (tech.missileCount - 1) / 2);
-                    //         } else {
-                    //             b.missile(where, m.angle, -10, sqrtCountReduction)
-                    //             bullet[bullet.length - 1].force.x += push.x * (i - (tech.missileCount - 1) / 2);
-                    //             bullet[bullet.length - 1].force.y += 0.005 + push.y * (i - (tech.missileCount - 1) / 2);
-                    //         }
-
-                    //     }, 1 + i * 10 * tech.missileCount);
-                    // }
-                    const launchDelay = 4
+                    const launchDelay = 6
                     let count = 0
+                    let totalMissiles = tech.isMissileSide + tech.missileCount
+
                     const fireMissile = () => {
                         if (m.crouch) {
-                            b.missile({ x: m.pos.x + 30 * direction.x, y: m.pos.y + 30 * direction.y }, m.angle, 20, sqrtCountReduction)
-                            bullet[bullet.length - 1].force.x += 0.5 * push.x * (Math.random() - 0.5)
-                            bullet[bullet.length - 1].force.y += 0.004 + 0.5 * push.y * (Math.random() - 0.5)
+                            if (tech.isMissileSide) {
+                                direction = Vector.rotate({ x: Math.cos(m.angle), y: Math.sin(m.angle) }, Math.PI / 2)
+                                b.missile({ x: m.pos.x + 30 * direction.x, y: m.pos.y + 30 * direction.y }, m.angle + Math.PI / 2, 0, sqrtCountReduction)
+                                totalMissiles--
+                                if (totalMissiles > 0) {
+                                    direction = Vector.rotate(direction, Math.PI)
+                                    b.missile({ x: m.pos.x + 30 * direction.x, y: m.pos.y + 30 * direction.y }, m.angle - Math.PI / 2, 0, sqrtCountReduction)
+                                    totalMissiles--
+                                }
+                            } else {
+                                b.missile({ x: m.pos.x + 30 * direction.x, y: m.pos.y + 30 * direction.y }, m.angle, 20, sqrtCountReduction)
+                                bullet[bullet.length - 1].force.x += 0.5 * push.x * (Math.random() - 0.5)
+                                bullet[bullet.length - 1].force.y += 0.004 + 0.5 * push.y * (Math.random() - 0.5)
+                                totalMissiles--
+                            }
                         } else {
-                            b.missile({ x: m.pos.x + 30 * direction.x, y: m.pos.y + 30 * direction.y }, m.angle, -15, sqrtCountReduction)
-                            bullet[bullet.length - 1].force.x += push.x * (Math.random() - 0.5)
-                            bullet[bullet.length - 1].force.y += 0.005 + push.y * (Math.random() - 0.5)
+                            if (tech.isMissileSide) {
+                                direction = Vector.rotate({ x: Math.cos(m.angle), y: Math.sin(m.angle) }, Math.PI / 2)
+                                b.missile({ x: m.pos.x + 30 * direction.x, y: m.pos.y + 30 * direction.y }, m.angle + Math.PI / 2, 15, sqrtCountReduction)
+                                totalMissiles--
+                                if (totalMissiles > 0) {
+                                    direction = Vector.rotate(direction, Math.PI)
+                                    b.missile({ x: m.pos.x + 30 * direction.x, y: m.pos.y + 30 * direction.y }, m.angle - Math.PI / 2, 15, sqrtCountReduction)
+                                    totalMissiles--
+                                }
+                            } else {
+                                b.missile({ x: m.pos.x + 30 * direction.x, y: m.pos.y + 30 * direction.y }, m.angle, -15, sqrtCountReduction)
+                                bullet[bullet.length - 1].force.x += push.x * (Math.random() - 0.5)
+                                bullet[bullet.length - 1].force.y += 0.005 + push.y * (Math.random() - 0.5)
+                                totalMissiles--
+                            }
                         }
                     }
+
+
                     const cycle = () => {
                         if ((simulation.paused) && m.alive) {
                             requestAnimationFrame(cycle)
@@ -6823,16 +6872,34 @@ const b = {
                             if (!(count % launchDelay)) {
                                 fireMissile()
                             }
-                            if (count < tech.missileCount * launchDelay && m.alive) requestAnimationFrame(cycle);
+                            if (totalMissiles > 0 && m.alive) requestAnimationFrame(cycle);
                         }
                     }
                     requestAnimationFrame(cycle);
                 } else {
                     if (m.crouch) {
-                        b.missile({ x: m.pos.x + 40 * direction.x, y: m.pos.y + 40 * direction.y }, m.angle, 25)
+                        if (tech.isMissileSide) {
+                            direction = Vector.rotate(direction, Math.PI / 2)
+                            b.missile({ x: m.pos.x + 40 * direction.x, y: m.pos.y + 40 * direction.y }, m.angle + Math.PI / 2, 0)
+                            // bullet[bullet.length - 1].force.y += 0.04 * (Math.random() - 0.2)
+                            direction = Vector.rotate(direction, Math.PI)
+                            b.missile({ x: m.pos.x + 40 * direction.x, y: m.pos.y + 40 * direction.y }, m.angle - Math.PI / 2, 0)
+                            // bullet[bullet.length - 1].force.y += 0.04 * (Math.random() - 0.2)
+                        } else {
+                            b.missile({ x: m.pos.x + 40 * direction.x, y: m.pos.y + 40 * direction.y }, m.angle, 25)
+                        }
                     } else {
-                        b.missile({ x: m.pos.x + 40 * direction.x, y: m.pos.y + 40 * direction.y }, m.angle, -12)
-                        bullet[bullet.length - 1].force.y += 0.04 * (Math.random() - 0.2)
+                        if (tech.isMissileSide) {
+                            direction = Vector.rotate(direction, Math.PI / 2)
+                            b.missile({ x: m.pos.x + 40 * direction.x, y: m.pos.y + 40 * direction.y }, m.angle + Math.PI / 2, 25)
+                            // bullet[bullet.length - 1].force.y += 0.04 * (Math.random() - 0.2)
+                            direction = Vector.rotate(direction, Math.PI)
+                            b.missile({ x: m.pos.x + 40 * direction.x, y: m.pos.y + 40 * direction.y }, m.angle - Math.PI / 2, 25)
+                            // bullet[bullet.length - 1].force.y += 0.04 * (Math.random() - 0.2)
+                        } else {
+                            b.missile({ x: m.pos.x + 40 * direction.x, y: m.pos.y + 40 * direction.y }, m.angle, -12)
+                            bullet[bullet.length - 1].force.y += 0.04 * (Math.random() - 0.2)
+                        }
                     }
                 }
             }
@@ -7132,7 +7199,15 @@ const b = {
             isDischarge: false,
             knockBack: 0.0005, //set in tech: cavitation
             applyKnock(velocity) {
-                player.force.x -= 0.7 * this.knockBack * velocity.x
+                if (m.onGround) {
+                    if (m.crouch) {
+                        player.force.x -= 0.1 * this.knockBack * velocity.x
+                    } else {
+                        player.force.x -= 0.4 * this.knockBack * velocity.x
+                    }
+                } else {
+                    player.force.x -= 0.7 * this.knockBack * velocity.x
+                }
                 if (velocity.y > 0) {
                     player.force.y -= 4.3 * this.knockBack * velocity.y
                 } else {

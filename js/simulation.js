@@ -801,7 +801,7 @@ const simulation = {
         //String(document.getElementById("seed").value)
         // Math.seed = Math.abs(Math.hash(Math.initialSeed)) //update randomizer seed in case the player changed it
 
-
+        canvas.style.filter = "brightness(1)"
         simulation.clearTimeouts();
         simulation.onTitlePage = true;
         document.getElementById("splash").onclick = function () {
@@ -967,10 +967,11 @@ const simulation = {
 
         //set to default field
         tech.healMaxEnergyBonus = 0
-        m.energy = 0
         m.immuneCycle = 0;
         m.coupling = 0
+        m.fieldUpgrades[1].energyHealthRatio = 1
         m.setField(0) //this calls m.couplingChange(), which sets max health and max energy
+        m.energy = 1
         //exit testing
         if (simulation.testing) {
             simulation.testing = false;
@@ -982,7 +983,7 @@ const simulation = {
         build.hasExperimentalMode = false
         build.isExperimentSelection = false;
         build.isExperimentRun = false;
-
+        canvas.style.filter = "brightness(1)"
 
         //setup checks
         if (!localSettings.isHideHUD) {
