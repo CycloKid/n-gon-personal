@@ -1,34 +1,72 @@
 ******************************************************** NEXT PATCH **************************************************
 
-new bosses:
-  spiderBoss2
-  spiderBoss3
-  spiderBoss4
-  tendrilBoss
-  tendrilBoss3
-  hydraBoss
-  hydraBoss2
-  hydraBoss3
-
-new constraint - hallucinations
-
-pair production will advance time 0.3s after picking up power ups
-foam recoil is reduce while standing on the ground or crouching
-when you have accretion, heals will now go to the next level even if they aren't nearby
-clarified counterfactual conditional text
-mob wings push 30% less and do 30% less damage
-pyrotechnics grenades explode about 0.05 seconds slower and a 1 fewer explosion
 
 bug fixes
-  adjusted interest wording to match 6% coupling spawn
-  assignment to const var on laserTargetingBoss
+  archetype and aberration
+    sorting order was reversed
+    removed tech you have and archetype and aberration from list
+    
 
 *********************************************************** TODO *****************************************************
 
+add white box and caption to chatter JUNK tech
+
+new constraint - no pause while choosing?
+  this was removed because it had issues with full screen
+
+if player has missile bot and a few other bots
+  convert up to 10 other bots into missile bot
+  convert all your guns into missile bots
+
+new tech that can pause other tech
+  synergies: tech debt, stimulated emission, cache, mass-energy equivalence, Zenos paradox, Ψ(t) collapse, fine-structure constant
+  cost research to pause or un pause?
+    seems too expensive?
+  pause mechanism
+    ?pause tech
+    ?remove tech, but get it back at the start of next level
+
+
+constraint ideas
+  blocks are converted to mobs
+    similar to blockBoss code
+  ?blocks do 0.2x damage
+  ?all gun and field techs are available
+    wording?
+      extra choices
+    better as a JUNK tech?
+
+softBosses
+  ideas for new softBosses
+    shared health between mobs?
+      or can each piece die independent?
+        shared health in cells of 2 or 4?
+    cycling invulnerability regions
+    also catapiller, but with a head on both ends
+    unconnected mobs have some attack effect
+    2 mob wide ring shaped (or oval)
+      or square or triangle...
+    normal worm body, with 2 branching arms that have stringers on the tip
+    wings every 3 segments?
+    slasher 1,2,3,4 style head
+    softbody that isn't in a square grid, instead one column is set half way to make a series of triangle constraint connections
+    add hydra style appendages
+    add extra layers of head mobs, slicer or stinger
+    earthworm can move through walls
+
+JUNK tech
+  mobs talk when you hit them, or when they hit you.
+  https://github.com/landgreen/n-gon/discussions/500
+
+Boltzmann brain
+  do something with a low probability to occur.
+    remove the level and get rid of player legs?
+    chance to spawn something good?
+  JUNK tech?
 
 tech: advance time 1 second after eating a power up
   skin tech Verlet integration unlocks
-
+    remove effect form pair production?
 
 drain energy when the block you hold hits a mob
   set held block to collide with mob and mob bullets

@@ -19,6 +19,7 @@ const tech = {
         m.resetSkin();
         tech.removeCount = 0;
         tech.pauseEjectTech = 1; //used in paradigm shift
+        powerUps.retainList = [] //used in coherence
         lore.techCount = 0;
         tech.duplication = 0;
         m.damageDone = 1
@@ -149,6 +150,7 @@ const tech = {
                 simulation.inGameConsole(`<span class='color-var'>tech</span>.<strong class='color-d'>damage</strong> *= ${dmg} //hidden-variable theory`);
             }
             // console.log(index, tech.tech[index])
+
             tech.tech[index].effect(); //give specific tech
             tech.tech[index].count++
             if (!tech.tech[index].isInstant) tech.totalCount++ //used in power up randomization
@@ -481,7 +483,7 @@ const tech = {
     },
     {
         name: "diaphragm",
-        description: "<strong class='color-defense'>damage taken</strong> oscillates between <strong>0.8x</strong> and <strong>3x</strong>",
+        description: "<strong class='color-defense'>damage taken</strong> oscillates between <strong>0.2x</strong> and <strong>0.9x</strong>",
         maxCount: 1,
         count: 0,
         frequency: 2,
@@ -492,6 +494,7 @@ const tech = {
         },
         requires: "aperture",
         effect() {
+            //dmg *= 0.55 + 0.35 * Math.sin(m.cycle * 0.01);
             tech.isDiaphragm = true
             m.resetSkin();
             m.skin.dilate2()
@@ -775,7 +778,7 @@ const tech = {
     },
     {
         name: "ordnance",
-        description: `spawn ${powerUps.orb.gun()} and get <strong>2x</strong> <em class='flicker'>frequency</em> for ${powerUps.orb.gunTech()}<br><strong>+6%</strong> chance for <strong class='color-junk'>JUNK</strong> <strong class='color-choice'><span>ch</span><span>oi</span><span>ces</span></strong>`,
+        description: `spawn ${powerUps.orb.gun()} and get <strong>2x</strong> <em class='flicker'>frequency</em> for ${powerUps.orb.gunTech()} <strong class='color-choice'><span>ch</span><span>oi</span><span>ces</span></strong><br><strong>+6%</strong> chance for <strong class='color-junk'>JUNK</strong> <strong class='color-choice'><span>ch</span><span>oi</span><span>ces</span></strong>`,
         maxCount: 1,
         count: 0,
         frequency: 1,
@@ -3608,7 +3611,7 @@ const tech = {
     {
         name: "maintenance",
         descriptionFunction() {
-            return `<strong>2x</strong> <em class='flicker'>frequency</em> for ${powerUps.orb.tech()} with <strong class='color-h'>healing</strong><br>spawn ${powerUps.orb.heal(13)}`
+            return `<strong>2x</strong> <em class='flicker'>frequency</em> for ${powerUps.orb.tech()} <strong class='color-choice'><span>ch</span><span>oi</span><span>ces</span></strong> with <strong class='color-h'>healing</strong><br>spawn ${powerUps.orb.heal(13)}`
         },
         maxCount: 1,
         count: 0,
@@ -3807,7 +3810,10 @@ const tech = {
     },
     {
         name: "decoherence",
-        description: `after a <strong>boss</strong> <strong>dies</strong> spawn ${powerUps.orb.research(3)}<br>${powerUps.orb.tech()} options you don't <strong class='color-choice'><span>ch</span><span>oo</span><span>se</span></strong> won't <strong>reoccur</strong>`,
+        descriptionFunction() {
+            return `after a <strong>boss</strong> <strong>dies</strong> spawn ${simulation.difficultyMode > 2 ? powerUps.orb.research(2) : powerUps.orb.research(4)}<br>${powerUps.orb.tech()} options you don't <strong class='color-choice'><span>ch</span><span>oo</span><span>se</span></strong> won't <strong>reoccur</strong>`
+        },
+        // description: `after a <strong>boss</strong> <strong>dies</strong> spawn ${powerUps.orb.research(2)}<br>${powerUps.orb.tech()} options you don't <strong class='color-choice'><span>ch</span><span>oo</span><span>se</span></strong> won't <strong>reoccur</strong>`,
         maxCount: 1,
         count: 0,
         frequency: 1,
@@ -4044,7 +4050,7 @@ const tech = {
     },
     {
         name: "unified field theory",
-        description: `when <strong>paused</strong> you can click to <strong>change</strong> your ${powerUps.orb.field()}<br><strong>2x</strong> frequency for <em class='flicker'>${powerUps.orb.fieldTech()}</em>`,
+        description: `when <strong>paused</strong> you can click to <strong>change</strong> your ${powerUps.orb.field()}<br><strong>2x</strong> frequency for <em class='flicker'>${powerUps.orb.fieldTech()}</em> <strong class='color-choice'><span>ch</span><span>oi</span><span>ces</span></strong>`,
         maxCount: 1,
         count: 0,
         frequency: 1,
@@ -4070,7 +4076,9 @@ const tech = {
     },
     {
         name: "brainstorming",
-        description: `<strong>randomize</strong> ${powerUps.orb.tech()} <strong class='color-choice'><span>ch</span><span>oi</span><span>ces</span></strong><br>every <strong>1.5</strong> seconds for <strong>10</strong> seconds`,
+        descriptionFunction() {
+            return `every <strong>1.5</strong> seconds use <strong>25</strong> <strong class='color-f'>energy</strong><br>to <strong>randomize</strong> ${powerUps.orb.tech()} <strong class='color-choice'><span>ch</span><span>oi</span><span>ces</span></strong><em style ="float: right;">(up to <strong>20</strong> times)</em>`
+        },
         maxCount: 1,
         count: 0,
         frequency: 1,
@@ -4222,6 +4230,112 @@ const tech = {
         remove() {
             tech.isSuperDeterminism = false;
         }
+    },
+    {
+        name: "archetype",
+        num: 14,
+        descriptionFunction() {
+            return `set your <strong>top ${this.num}</strong> ${powerUps.orb.tech()} <strong class='color-choice'><span>ch</span><span>oi</span><span>ces</span></strong> to <em class='flicker'>3x frequency</em>`
+        },
+        maxCount: 1,
+        count: 0,
+        frequency: 1,
+        frequencyDefault: 1,
+        isBadRandomOption: true,
+        isInstant: true,
+        allowed() {
+            return localSettings.isAllowed && localSettings.techHistory.length > 100
+        },
+        requires: "above 100 tech choices in local storage",
+        effect() {
+            function sortByFrequency(arr) {
+                // count occurrence of each string
+                const freqMap = new Map();
+                for (const str of arr) {
+                    freqMap.set(str, (freqMap.get(str) || 0) + 1);
+                }
+
+                const unique = [...new Set(arr)]; // Get unique strings in order of first appearance
+                return unique.sort((a, b) => freqMap.get(b) - freqMap.get(a)); // Sort by frequency (descending)
+            }
+            const sorted = sortByFrequency(localSettings.techHistory)
+
+            let text = '3x <strong>frequency</strong> for:<br>'
+            for (let j = 0; j < this.num; j++) {
+                for (let i = 0, len = tech.tech.length; i < len; i++) {
+                    if (tech.tech[i].name === sorted[j] && tech.tech[i].name !== "archetype" && tech.tech[i].name !== "aberration") {
+                        if (tech.tech[i].count > 0) { //don't add tech you already have
+                            this.num++
+                        } else {
+                            tech.tech[i].frequency *= 3
+                            // simulation.inGameConsole(`<span class='color-var'>tech</span>["<strong>${tech.tech[i].name}</strong>"].frequency = <strong>${tech.tech[i].frequency}</strong>`);
+                            // simulation.inGameConsole(`<span class='color-var'>${tech.tech[i].name}</span> frequency = <strong>${tech.tech[i].frequency}</strong>`);
+                            text += `<span class='color-var'>${tech.tech[i].name}</span><br>`
+                        }
+                    }
+                }
+            }
+            simulation.inGameConsole(text);
+
+
+            // for (let i = 0, len = tech.tech.length; i < len; i++) {
+            //     if (tech.tech[i].frequency > 2) {
+            //         console.log(tech.tech[i].name, tech.tech[i].frequency)
+            //     }
+            // }
+        },
+        remove() { }
+    },
+    {
+        name: "aberration",
+        num: 22,
+        descriptionFunction() {
+            return `set your <strong>top ${this.num}</strong> ${powerUps.orb.tech()} <strong class='color-choice'><span>ch</span><span>oi</span><span>ces</span></strong> to <em class='flicker'>0 frequency</em><br>spawn ${powerUps.orb.tech()} ${powerUps.orb.tech()}`
+        },
+        maxCount: 1,
+        count: 0,
+        frequency: 1,
+        frequencyDefault: 1,
+        isBadRandomOption: true,
+        isInstant: true,
+        allowed() {
+            return localSettings.isAllowed && localSettings.techHistory.length > 100 && !tech.isArchetype
+        },
+        requires: "above 100 tech choices in local storage",
+        effect() {
+            function sortByFrequency(arr) {
+                // count occurrence of each string
+                const freqMap = new Map();
+                for (const str of arr) {
+                    freqMap.set(str, (freqMap.get(str) || 0) + 1);
+                }
+
+                const unique = [...new Set(arr)]; // Get unique strings in order of first appearance
+                return unique.sort((a, b) => freqMap.get(b) - freqMap.get(a)); // Sort by frequency (descending)
+            }
+            const sorted = sortByFrequency(localSettings.techHistory)
+
+            let text = '0x <strong>frequency</strong> for:<br>'
+            for (let j = 0; j < this.num; j++) {
+                for (let i = 0, len = tech.tech.length; i < len; i++) {
+                    if (tech.tech[i].name === sorted[j] && tech.tech[i].name !== "archetype" && tech.tech[i].name !== "aberration") {
+                        if (tech.tech[i].count > 0) { //don't add tech you already have
+                            this.num++
+                        } else {
+                            tech.tech[i].frequency *= 3
+                            // simulation.inGameConsole(`<span class='color-var'>tech</span>["<strong>${tech.tech[i].name}</strong>"].frequency = <strong>${tech.tech[i].frequency}</strong>`);
+                            // simulation.inGameConsole(`<span class='color-var'>${tech.tech[i].name}</span> frequency = <strong>${tech.tech[i].frequency}</strong>`);
+                            text += `<span class='color-var'>${tech.tech[i].name}</span><br>`
+                        }
+                    }
+                }
+            }
+            simulation.inGameConsole(text);
+
+            //spawn 2 tech
+            for (let i = 0; i < 2; i++) powerUps.spawn(m.pos.x + 60 * (Math.random() - 0.5), m.pos.y + 60 * (Math.random() - 0.5), "tech");
+        },
+        remove() { }
     },
     {
         name: "technical debt",
@@ -4823,6 +4937,8 @@ const tech = {
                     requestAnimationFrame(() => { tech.giveTech("martingale") });
                 }
                 this.frequency = 0
+            } else {
+                this.damage = 0.1
             }
         }
     },
@@ -6550,7 +6666,7 @@ const tech = {
     },
     {
         name: "flame test",
-        description: "after <strong>grenades</strong> detonate they trigger<br>a colorful <strong>cluster</strong> of small <strong class='color-e'>explosions</strong>",
+        description: "<strong>grenades</strong> detonate in a random <strong>cluster</strong> of<br><strong>sixteen</strong> 0.65x <strong class='color-e'>explosions</strong> over <strong>2.7</strong> seconds",
         isGunTech: true,
         maxCount: 1,
         count: 0,
@@ -6569,7 +6685,7 @@ const tech = {
     },
     {
         name: "pyrotechnics",
-        description: "after <strong>grenades</strong> detonate they trigger<br>a colorful <strong>circle</strong> of <strong class='color-e'>explosions</strong>",
+        description: "<strong>grenades</strong> detonate in a <strong>ring</strong> of<br><strong>nine</strong> 0.65x <strong class='color-e'>explosions</strong>",
         isGunTech: true,
         maxCount: 1,
         count: 0,
@@ -6588,7 +6704,8 @@ const tech = {
     },
     {
         name: "fireworks",
-        description: "after <strong>grenades</strong> detonate they trigger<br>colorful <strong>petals</strong> of <strong class='color-e'>explosions</strong>",
+        description: "<strong>grenades</strong> detonate as <strong>flower petal</strong> of<br><strong class='color-e'>explosions</strong> (<strong>one</strong> 0.9x, <strong>six</strong> 0.65x, <strong>ten</strong> 0.5x)",
+        // description: "after <strong>grenades</strong> detonate they trigger<br> of <strong class='color-e'>explosions</strong>",
         isGunTech: true,
         maxCount: 1,
         count: 0,
@@ -8051,7 +8168,7 @@ const tech = {
     },
     {
         name: "lens",
-        description: "<strong>2.5x</strong> <strong class='color-laser'>laser</strong> <strong class='color-d'>damage</strong> if it passes<br>through a revolving <strong>90°</strong> arc circular lens", //<span style='font-size: 125%;'>π</span> / 2</strong>
+        description: "<strong>3x</strong> <strong class='color-laser'>laser</strong> <strong class='color-d'>damage</strong> if it passes<br>through a revolving <strong>90°</strong> arc circular lens", //<span style='font-size: 125%;'>π</span> / 2</strong>
         isGunTech: true,
         maxCount: 1,
         count: 0,
@@ -8076,7 +8193,7 @@ const tech = {
     },
     {
         name: "compound lens",
-        description: "<strong>1.4x</strong> <strong class='color-laser'>laser</strong> lens <strong class='color-d'>damage</strong><br><strong>+30°</strong> lens arc",
+        description: "<strong>1.5x</strong> <strong class='color-laser'>laser</strong> lens <strong class='color-d'>damage</strong><br><strong>+30°</strong> lens arc",
         isGunTech: true,
         maxCount: 9,
         count: 0,
@@ -8088,11 +8205,11 @@ const tech = {
         requires: "lens",
         effect() {
             b.guns[11].arcRange += 30 * Math.PI / 180 / 2
-            b.guns[11].lensDamageOn += 0.4
+            b.guns[11].lensDamageOn += 0.5
         },
         remove() {
             b.guns[11].arcRange = 90 * Math.PI / 180 / 2 //0.78 divded by 2 because of how it's drawn
-            b.guns[11].lensDamageOn = 2.5
+            b.guns[11].lensDamageOn = 3
         }
     },
     {
@@ -8422,7 +8539,7 @@ const tech = {
     },
     {
         name: "expansion",
-        description: "using standing wave <strong>expands</strong> its <strong>radius</strong><br><strong>+77</strong> maximum <strong class='color-f'>energy</strong>",
+        description: "using standing wave <strong>expands</strong> its <strong>radius</strong><br><strong>+100</strong> maximum <strong class='color-f'>energy</strong>",
         isFieldTech: true,
         maxCount: 1,
         count: 0,
@@ -8754,7 +8871,8 @@ const tech = {
     },
     {
         name: "additive manufacturing",
-        description: `hold <strong>crouch</strong> and use ${powerUps.orb.field()} to <strong class='color-print'>print</strong> a <strong class='color-block'>block</strong><br> with <strong>1.8x</strong> density, <strong class='color-d'>damage</strong>, and launch speed`,
+        description: `hold <strong>crouch</strong> and use your ${powerUps.orb.field()}<br>to <strong class='color-print'>print</strong> a <strong class='color-block'>block</strong> and <strong>throw</strong> it`,
+        //<br> with <strong>1.4x</strong> density, <strong class='color-d'>damage</strong>, and launch speed
         isFieldTech: true,
         maxCount: 1,
         count: 0,
@@ -8845,7 +8963,7 @@ const tech = {
                         m.buttonCD_jump = m.cycle; //can't jump again until 20 cycles pass
                         Matter.Body.setVelocity(player, { x: player.velocity.x + horizontalVelocity, y: -7.5 + 0.25 * player.velocity.y });
                         player.force.y = -m.jumpForce; //player jump force
-                        m.fieldUpgrades[4].endoThermic(0.3)
+                        m.fieldUpgrades[4].endoThermic(0.6)
                     }
                 },
             })
@@ -8885,7 +9003,7 @@ const tech = {
         allowed() {
             return m.fieldMode === 4
         },
-        requires: "molecular assembler, pilot wave, standing wave",
+        requires: "molecular assembler",
         effect() {
             tech.isEndothermic = true
         },
@@ -10301,7 +10419,8 @@ const tech = {
     },
     {
         name: "brainstorm",
-        description: `${powerUps.orb.tech()} <strong class='color-choice'><span>ch</span><span>oi</span><span>ces</span></strong> <strong>randomize</strong><br>every <strong>0.5</strong> seconds for <strong>10</strong> seconds`,
+        description: `every <strong>0.5</strong> seconds use <strong>25</strong> <strong class='color-f'>energy</strong><br>to <strong>randomize</strong> ${powerUps.orb.tech()} <strong class='color-choice'><span>ch</span><span>oi</span><span>ces</span></strong><em style ="float: right;">(up to <strong>20</strong> times)</em>`,
+        // description: `${powerUps.orb.tech()} <strong class='color-choice'><span>ch</span><span>oi</span><span>ces</span></strong> <strong>randomize</strong><br>every <strong>0.5</strong> seconds for <strong>6</strong> seconds`,
         maxCount: 1,
         count: 0,
         frequency: 0,
@@ -11834,6 +11953,58 @@ const tech = {
         remove() { }
     },
     {
+        name: "slink",
+        description: "while you are crouched you runing around really fast!",
+        maxCount: 1,
+        count: 0,
+        frequency: 0,
+        isInstant: true,
+        isJunk: true,
+        allowed() {
+            return true
+        },
+        requires: "",
+        effect() {
+            m.groundControl = function () {
+                const moveX = player.velocity.x - m.moverX //account for mover platforms
+                //check for crouch or jump
+                if (m.crouch) {
+                    if (!(input.down) && m.checkHeadClear() && m.hardLandCD < m.cycle) m.undoCrouch();
+                } else if (input.down || m.hardLandCD > m.cycle) {
+                    m.doCrouch(); //on ground && not crouched and pressing s or down
+                } else if (input.up && m.buttonCD_jump + 20 < m.cycle) {
+                    m.jump()
+                }
+                //Math.abs(player.velocity.x) < 7.5
+                const fx = m.Fx * ((m.crouch && input.down) ? 10 : 1)
+                if (input.left && !input.right) {
+                    if (moveX > -2) {
+                        player.force.x -= fx * 1.5
+                    } else {
+                        player.force.x -= fx
+                    }
+                    // }
+                } else if (input.right && !input.left) {
+                    if (moveX < 2) {
+                        player.force.x += fx * 1.5
+                    } else {
+                        player.force.x += fx
+                    }
+                } else {
+                    const stoppingFriction = 0.92; //come to a stop if no move key is pressed
+                    Matter.Body.setVelocity(player, { x: m.moverX * 0.08 + player.velocity.x * stoppingFriction, y: player.velocity.y * stoppingFriction });
+                }
+
+                if (Math.abs(moveX) > 4) { //come to a stop if fast     // if (player.speed > 4) { //come to a stop if fast 
+                    const stoppingFriction = (m.crouch && (input.down || !m.checkHeadClear())) ? 0.65 : 0.89; // this controls speed when crouched 
+                    Matter.Body.setVelocity(player, { x: m.moverX * (1 - stoppingFriction) + player.velocity.x * stoppingFriction, y: player.velocity.y * stoppingFriction });
+                }
+                m.moverX = 0 //reset the level mover offset
+            }
+        },
+        remove() { }
+    },
+    {
         name: "ship",
         description: "fly around with no legs",
         maxCount: 1,
@@ -11866,7 +12037,7 @@ const tech = {
         allowed() {
             return m.isShipMode
         },
-        requires: "",
+        requires: "ship",
         effect() {
             m.damageDone *= 3
 
@@ -12324,6 +12495,24 @@ const tech = {
         },
         remove() {
             tech.isWiki = false;
+        }
+    },
+    {
+        name: "chatter",
+        description: `you can listen in on what mobs are saying after you damage them`,
+        maxCount: 1,
+        count: 0,
+        frequency: 0,
+        isJunk: true,
+        allowed() {
+            return true
+        },
+        requires: "",
+        effect() {
+            tech.isChatter = true;
+        },
+        remove() {
+            tech.isChatter = false;
         }
     },
     {
@@ -13066,5 +13255,6 @@ const tech = {
     isExplodeContact: null,
     isMissileSide: null,
     isLaserShot: null,
-    isDigitalPet: null
+    isDigitalPet: null,
+    isChatter: null,
 }

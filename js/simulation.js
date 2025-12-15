@@ -534,13 +534,13 @@ const simulation = {
         if (simulation.isAutoZoom) {
             simulation.ephemera.push({
                 name: "zoom",
-                count: simulation.testing ? 0 : 120, //cycles before it self removes
+                count: simulation.testing ? 1 : 120, //cycles before it self removes
                 currentLevel: level.onLevel,
                 do() {
                     this.count--
                     const step = (newZoomScale - simulation.zoomScale) / this.count
                     simulation.zoomScale += step
-                    if (this.count < 1 && this.currentLevel === level.onLevel && simulation.isAutoZoom) {
+                    if (this.count < 1 && simulation.isAutoZoom) {
                         simulation.zoomScale = newZoomScale
                         simulation.removeEphemera(this)
                     }
@@ -1282,7 +1282,7 @@ const simulation = {
         if (tech.isHealAttract && m.alive) { //send health power ups to the next level
             let healCount = 0
             for (let i = 0, len = powerUp.length; i < len; i++) {
-                if (powerUp[i].name === "heal" && Vector.magnitudeSquared(Vector.sub(powerUp[i].position, m.pos)) < 1000000) healCount++
+                if (powerUp[i].name === "heal") healCount++
             }
             //respawn health in animation frame
             let respawnHeal = () => {
