@@ -560,6 +560,14 @@ const mobs = {
                 }
             },
             searchSpring() {
+                ctx.beginPath();
+                ctx.moveTo(this.cons.pointA.x, this.cons.pointA.y)
+                ctx.lineTo(this.cons.bodyB.position.x, this.cons.bodyB.position.y)
+                ctx.moveTo(this.cons2.pointA.x, this.cons2.pointA.y)
+                ctx.lineTo(this.cons2.bodyB.position.x, this.cons2.bodyB.position.y)
+                ctx.lineWidth = 1;
+                ctx.strokeStyle = "#222";
+                ctx.stroke();
                 //draw the two dots on the end of the springs
                 ctx.beginPath();
                 ctx.arc(this.cons.pointA.x, this.cons.pointA.y, 6, 0, 2 * Math.PI);
@@ -1012,7 +1020,9 @@ const mobs = {
                                         }
                                     }
                                     if (!isTalking) {
+                                        //from https://github.com/landgreen/n-gon/discussions/500
                                         const quotes = [
+                                            // Existing quotes
                                             "I can do *anything!*",
                                             "Chaos, chaos!",
                                             "Let's make the devilskn-",
@@ -1030,9 +1040,24 @@ const mobs = {
                                             "Your mother was a hamster, and your father smelt of elderberries",
                                             "In Rod we trust",
                                             "AAAAAAAA",
-                                            // "I caught size 2",
                                             "the devil may cry?",
-                                            "hey Mr M? are you still mad at me?"
+                                            "hey Mr M? are you still mad at me?",
+
+                                            // New suggestions from discussion #500
+                                            "yippee",
+                                            "If you wish to defeat me train for another hundred years.",
+                                            "WE CALLED TO TALK ABOUT YOUR CAR'S LIMITED WARRANTY",
+                                            "KAMEHAMEHA!!!!!!!!!!",
+                                            "Who you gonna call? GHOST BUSTERS!",
+                                            "JARVIS evaporate this man",
+                                            "Squirtle use water beam!",
+                                            "El pollo está en llamas.",
+                                            "pentagon, hexagon, octagon, nevergon.. na give you up",
+                                            "Eat cube bozo",
+                                            "let's make the devilsknife!",
+                                            "you know, I really dislike you.",
+                                            "Good luck, and may the odds be ever in your favor",
+                                            "You dare defy the Lord of Darkness."
                                         ];
                                         const color = `#${Math.floor(Math.random() * 76 + 180).toString(16)}${Math.floor(Math.random() * 121).toString(16).padStart(2, '0')}${Math.floor(Math.random() * 121).toString(16).padStart(2, '0')}`
                                         const quote = quotes[Math.floor(Math.random() * quotes.length)]
@@ -1293,6 +1318,15 @@ const mobs = {
                             for (let i = 0; i < len; i++) b.worm(this.position)
                         } else {
                             for (let i = 0; i < amount; i++) b.spore(this.position)
+                        }
+                    }
+                    if (tech.isChitin) {
+                        // add new segment where the current tip is
+                        for (let i = 0; i < 2; i++) {
+                            if (tech.wire.segments.length < 200) { //cap max length at 200 for performance
+                                const last = tech.wire.segments[tech.wire.segments.length - 1];
+                                tech.wire.segments.push({ x: last.x, y: last.y, oldX: last.x, oldY: last.y });
+                            }
                         }
                     }
                     if (tech.isExplodeMob) {

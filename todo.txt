@@ -1,86 +1,201 @@
 ******************************************************** NEXT PATCH **************************************************
 
+Difficulty is now locked at level 2 (the normal starting level) for the training.
+paradigm shift starts at 1->2 health cost
 
 bug fixes
-  archetype and aberration
-    sorting order was reversed
-    removed tech you have and archetype and aberration from list
-    
+  extended queued removal when exiting level
 
 *********************************************************** TODO *****************************************************
 
-add white box and caption to chatter JUNK tech
+look for more splices
 
-new constraint - no pause while choosing?
-  this was removed because it had issues with full screen
+                        Matter.Composite.remove(engine.world, this.caughtPowerUp);
+                        powerUp.splice(index, 1);
 
-if player has missile bot and a few other bots
+                        Matter.Composite.remove(engine.world, mob[i]);
+                        powerUp.splice(i, 1);
+
+
+in the pause/experiment menus clicking on tech,guns,field orbs with produce text to speech of it's name
+  !a second click will read the description?
+    how to convert html to readable text??
+
+sort text input is broken in pause menu
+  does nothing on clicking sort or pressing enter
+  pressing P, O  breaks it
+  add more buttons
+    duplication
+    research, coupling
+    bot tech
+    JUNK
+  
+eigenstate
+  update node animation, it doesn't look right...
+  add custom text for eigenstate (if you add at least 2 more tech)
+eigenstate - additional tech
+  while your eigan state is moving it will fire ______ at nearby mobs
+  your state teleports to you when you____
+        hold down?   tap up up up
+  your eigen state fires when you fire
+    too hard to code...
+  gain a laser bot and your laser bots follow your eigen state
+  when you use ammo your eigen state makes an isometric wave?
+  do something after swap for a few seconds
+    damage?
+    faster move speed 6s after swap??
+  general damage reduction
+  3x block damage?
+  2 different bonus effects for each state
+    damage, damage reduction, movement and jump
+  the damage you do after swapping states lasts longer?
+  tech.field,guns, ammo, coupling, research, max health, max energy, duplication, ... will swap
+
+
+replace damage side bar with a number?
+  where: red text above tech list
+  changing numbers might get distracting?
+replace damage reduction with a number?
+  I actually like this bar, so maybe don't replace
+  where
+    white text above health bar?
+    inside health bar?
+
+tech: - at the end of each level get 40% of current gun's ammo
+  requires interest
+
+tech:  - at the end of each level if you have no guns....
+  get a bot? 
+  1.2x damage
+
+tech:  - if you have no field get....
+
+try to also allow players to unpause in choosing menu
+
+
+
+
+add an HTML input in the tech description(slider or checkbox, dropdown menu,  other inputs)
+  put html slider in tech description, adjust when paused
+  it will control some property that is sometimes better at different values
+    convert all bots to a type with dropdown menu
+      or change what bots are upgraded to
+    cost benefit trades with slider
+      bot AI behaviors
+        range - frequency
+      health - energy
+      dmg - dmg reduction
+
+consider making pause menu a grid, like experiment mode
+  this could be an setting to toggle off/on
+
+ngon means tasty in vietnamese
+  make a JUNK tech around this?
+
+new level - ducts
+  wind effect
+    push player in a direction
+      push less if on ground or crouching or holding block
+    graphics?
+      draw a line and move it in the direction of wind
+  tunnels with wind
+    change wind direction with button?
+      maybe two buttons that alternate the direction like on the map corridor
+    fire from furnace level fills some of the tunnels and some of the zones
+      player needs to press buttons to switch the furnace off
+        but it only stays off for a short time
+  maybe some spinners that look like fans
+
+filament
+  tech: - filament tip is drawn towards blocks?, power ups?, mobs?
+    and does something good when it touches them
+?world line - give energy when cut?
+  stop giving extra length from power ups?
+tech filament attacks mobs with the tip
+  gravitate every segment, maybe with less weigh to the shorter parts
+
+tubeWormBoss T4 or T5
+
+tech: filament - gets longer as you eat power ups (up to a max length), mobs can cut wire, wire length gives duplication
+  long tails looks strange in vertical flip?
+  improve with additional tech
+    coaxial, ductile - wire length increases damage
+    aura around wire (to kill bullets)
+    aura around wire (or just tip) that freezes
+      tip spawns ice-IX
+    change wire physics, color, draw style with upgrades
+      const rigidity = 1; // 0 (loose) to 1 (crinkles), -0.6 has wiggly knots
+      this.gravity = 0.6;
+      this.friction = 0.5;
+      spacing = 20//40 has bigger loops and a whole different feel
+
+zoom in/out when choosing power ups
+  interactions with other zoom actions
+    zoom at start of level  (this could be instant)
+
+make orbital bots have an elliptical orbit that precesses
+
+do something with verlet wire system and elastic thread system      https://gemini.google.com/app/d4459990774e555d?utm_source=app_launcher&utm_medium=owned&utm_campaign=base_all
+  skin with wires attached
+    upgrades increase wire length
+  boss mob with tail? - done
+  JUNK tech with several wires as hair
+  wire length is diegetic energy bar/health bar
+  snake boss?
+    maybe use the simple elastic tail code?
+
+
+do something with powerUps.totalUsed
+  give dmg for each power up used this game?
+
+make a new power up that is small and white
+  unlock with a tech
+  effect?
+    temporary buff, like boost
+    something that you collect and build up and effect, like coupling
+
+use the horizontal vibration effect on a mob or gun or level effect
+  ctx.translate((simulation.cycle % 2) * 8, 0);
+
+add a setting to say the name of each tech/field/guns
+  is the built in browser voice good enough accuracy? (yep)
+  when to generate audio?
+    click on the orb while paused?
+    add new icon to click on to the right align of the title
+    after choose (this needs a setting to disable)
+    just make it a JUNK tech?
+
+mob attack - crash on top of player when above
+  mob flies towards player, but aims for a space above the player (if there is no map of body elements int the way)
+mob attack - run towards player when in same vertical row
+
+make more Cordyceps/zombie tech?
+  spawn zombie in other ways?
+  tech that buff zombies?
+    zombies move with you to next zone?
+      this is tricky because zombies hurt you when they touch, so where should they spawn?
+      
+show stats for popular tech choices
+  in splash screen?
+  track other stats?
+
+tech: - if player has missile bot and a few other bots
   convert up to 10 other bots into missile bot
   convert all your guns into missile bots
 
-new tech that can pause other tech
-  synergies: tech debt, stimulated emission, cache, mass-energy equivalence, Zenos paradox, Ψ(t) collapse, fine-structure constant
-  cost research to pause or un pause?
-    seems too expensive?
-  pause mechanism
-    ?pause tech
-    ?remove tech, but get it back at the start of next level
-
-
 constraint ideas
+  0.66x fire rate
   blocks are converted to mobs
     similar to blockBoss code
-  ?blocks do 0.2x damage
-  ?all gun and field techs are available
-    wording?
-      extra choices
-    better as a JUNK tech?
-
-softBosses
-  ideas for new softBosses
-    shared health between mobs?
-      or can each piece die independent?
-        shared health in cells of 2 or 4?
-    cycling invulnerability regions
-    also catapiller, but with a head on both ends
-    unconnected mobs have some attack effect
-    2 mob wide ring shaped (or oval)
-      or square or triangle...
-    normal worm body, with 2 branching arms that have stringers on the tip
-    wings every 3 segments?
-    slasher 1,2,3,4 style head
-    softbody that isn't in a square grid, instead one column is set half way to make a series of triangle constraint connections
-    add hydra style appendages
-    add extra layers of head mobs, slicer or stinger
-    earthworm can move through walls
-
-JUNK tech
-  mobs talk when you hit them, or when they hit you.
-  https://github.com/landgreen/n-gon/discussions/500
+  no pause while choosing?
+    this was removed because it had issues with full screen
 
 Boltzmann brain
   do something with a low probability to occur.
     remove the level and get rid of player legs?
+      convert with ship tech
     chance to spawn something good?
   JUNK tech?
-
-tech: advance time 1 second after eating a power up
-  skin tech Verlet integration unlocks
-    remove effect form pair production?
-
-drain energy when the block you hold hits a mob
-  set held block to collide with mob and mob bullets
-  in player code check for collisions between block and mobs
-
-performance issue with experiment mode
-  causes my computer fan to turn on when I leave it on for a few minutes
-    maybe do a performance test in dev tools
-  fixes?
-    remove some CSS animations
-      cloaking
-      choices
-    find a way to not draw things off screen?
-    something might be changing size and forcing a redraw of everything
 
 perfect diamagnetism tech:   - using field while crouching will pull in blocks
   releasing field will fire the blocks  (like control)
@@ -131,13 +246,6 @@ new boss - murmuration of small mobs (maybe 30-50)
       use seePlayerByHistory to set goal for the murmuration
         if one mob can't see goal have them target other mobs in the murmuration
     if no more mobs left on death spawn power ups
-
-diagetic letters
-  initial
-    !added instructions for inputs
-      maybe only if new player...
-    !let player know what lore chapter they are on
-      especially pacifist chapter
 
 tech, field? base game? - doing damage heals 1x (less?) of the last damage taken
   so you can't heal if you take damage twice before doing enough damage
@@ -1547,6 +1655,11 @@ possible names for tech
   gravity wave - 
   tuple - a finite list
   Navier–Stokes - equations for the movement of fluids
+  renormalization
+  fractal dimension - maybe for surface area?
+  self-locating uncertainty - something related to anthropic principle, or many worlds
+  ontic - real (maybe something with research)
+  epistemic - knowledge about whats real, but not strictly real... (maybe something with research)
 
 
 ******************************************************** UNSOLVED BUGS ********************************************************

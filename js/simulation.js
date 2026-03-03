@@ -18,7 +18,7 @@ const simulation = {
         level.custom();
         powerUps.do();
         mobs.draw();
-        simulation.draw.cons();
+        // simulation.draw.cons();
         simulation.draw.body();
         if (!m.isTimeDilated) mobs.loop();
         m.draw();
@@ -204,101 +204,7 @@ const simulation = {
     accelScale: null,
     CDScale: null,
     molecularMode: Math.floor(4 * Math.random()), //0 spores, 1 missile, 2 ice IX, 3 drones //randomize molecular assembler field type
-    // dropFPS(cap = 40, time = 15) {
-    //   simulation.fpsCap = cap
-    //   simulation.fpsInterval = 1000 / simulation.fpsCap;
-    //   simulation.defaultFPSCycle = simulation.cycle + time
-    //   const normalFPS = function () {
-    //     if (simulation.defaultFPSCycle < simulation.cycle) {
-    //       simulation.fpsCap = 72
-    //       simulation.fpsInterval = 1000 / simulation.fpsCap;
-    //     } else {
-    //       requestAnimationFrame(normalFPS);
-    //     }
-    //   };
-    //   requestAnimationFrame(normalFPS);
-    // },
-    // clip() {
 
-    // },
-    pixelGraphics() {
-        //copy current canvas pixel data
-        let imgData = ctx.getImageData(0, 0, canvas.width, canvas.height);
-        let data = imgData.data;
-        //change pixel data
-
-
-        // const off = 4 * Math.floor(x) + 4 * canvas.width * Math.floor(y);
-        // multiple windows
-        for (let i = data.length / 2; i < data.length; i += 4) {
-            index = i % (canvas.width * canvas.height * 2) // + canvas.width*4*canvas.height
-
-            data[i + 0] = data[index + 0]; // red
-            data[i + 1] = data[index + 1]; // red
-            data[i + 2] = data[index + 2]; // red
-            data[i + 3] = data[index + 3]; // red
-        }
-
-        for (let x = 0; x < len; x++) {
-
-        }
-
-
-
-        // const startX = 2 * canvas.width + 2 * canvas.width * canvas.height
-        // const endX = 4 * canvas.width + 4 * canvas.width * canvas.height
-        // const startY = 2 * canvas.width + 2 * canvas.width * canvas.height
-        // const endY = 4 * canvas.width + 4 * canvas.width * canvas.height
-        // for (let x = startX; x < endX; x++) {
-        //   for (let y = startY; y < endY; y++) {
-
-        //   }
-        // }
-
-
-
-
-        //strange draw offset
-        // const off = canvas.height * canvas.width * 4 / 2
-        // for (let index = 0; index < data.length; index += 4) {
-        //   data[index + 0] = data[index + 0 + off]; // red
-        //   data[index + 1] = data[index + 1 + off]; // red
-        //   data[index + 2] = data[index + 2 + off]; // red
-        //   data[index + 3] = data[index + 3 + off]; // red
-        // }
-
-        //change all pixels
-        // for (let index = 0; index < data.length; index += 4) {
-        // data[index + 0] = 255; // red
-        // data[index + 1] = 255; // green
-        // data[index + 2] = 255; // blue
-        // data[index + 3] = 255; // alpha 
-        // }
-
-        //change random pixels
-        // for (let i = 0, len = Math.floor(data.length / 10); i < len; ++i) {
-        //   const index = Math.floor((Math.random() * data.length) / 4) * 4;
-        //   data[index + 0] = 255; // red
-        //   data[index + 1] = 0; // green
-        //   data[index + 2] = 0; // blue
-        //   data[index + 3] = 255 //Math.floor(Math.random() * Math.random() * 255); // alpha
-        // }
-
-        // //change random pixels
-        // for (let i = 0, len = Math.floor(data.length / 1000); i < len; ++i) {
-        //   const index = Math.floor((Math.random() * data.length) / 4) * 4;
-        //   // data[index] = data[index] ^ 255; // Invert Red
-        //   // data[index + 1] = data[index + 1] ^ 255; // Invert Green
-        //   // data[index + 2] = data[index + 2] ^ 255; // Invert Blue
-        //   data[index + 0] = 0; // red
-        //   data[index + 1] = 0; // green
-        //   data[index + 2] = 0; // blue
-        //   // data[index + 3] = 255 //Math.floor(Math.random() * Math.random() * 255); // alpha
-        // }
-
-        //draw new pixel data to canvas
-        ctx.putImageData(imgData, 0, 0);
-    },
     drawCursor() {
         const size = 10;
         ctx.beginPath();
@@ -667,6 +573,17 @@ const simulation = {
                     }
                 }
             }
+
+            if (tech.wire && tech.wire.segments.length) {
+                requestAnimationFrame(() => {
+                    const r = 32 * player.scale
+                    const a = m.angle + Math.PI
+                    for (let i = 0; i < tech.wire.segments.length; i++) {
+                        tech.wire.segments[i].y = tech.wire.segments[i].oldY = m.pos.y + (r * Math.sin(a))
+                        tech.wire.segments[i].x = tech.wire.segments[i].oldX = m.pos.x + (r * Math.cos(a))
+                    }
+                })
+            }
         }
     },
     setupCamera() { //makes the camera not scroll after changing locations
@@ -958,6 +875,7 @@ const simulation = {
         m.alive = true;
         m.definePlayerMass();
         m.onGround = false
+        // m.groundCount = 0
         m.lastOnGroundCycle = 0
         m.health = 0;
         level.isLowHeal = false
@@ -1156,12 +1074,20 @@ const simulation = {
                         if (tech.cyclicImmunity && m.immuneCycle < m.cycle + tech.cyclicImmunity) m.immuneCycle = m.cycle + tech.cyclicImmunity; //player is immune to damage for 60 cycles
 
 
-
                         let i = body.length;
                         while (i--) {
                             if (body[i].position.y > simulation.fallHeight) {
-                                Matter.Composite.remove(engine.world, body[i]);
-                                body.splice(i, 1);
+                                if (body[i].isInvulnerable) {
+                                    Matter.Body.setVelocity(body[i], { x: 0, y: 0 });
+                                    if (level.fallMode === "position") {
+                                        const posXClamped = Math.min(Math.max(level.fallModeBounds.left, body[i].position.x), level.fallModeBounds.right)
+                                        Matter.Body.setPosition(body[i], { x: posXClamped, y: level.enter.y - 4000 });
+                                    } else {
+                                        Matter.Body.setPosition(body[i], { x: level.enter.x + 50, y: level.enter.y - 20 });
+                                    }
+                                } else {
+                                    queueRemoval('body', i)
+                                }
                             }
                         }
                         i = powerUp.length
@@ -1217,7 +1143,13 @@ const simulation = {
         simulation.unFlipCameraVertical()
         ctx.setTransform(1, 0, 0, 1, 0, 0);
         if (m.alive) {
-            if (tech.isLongitudinal) b.guns[3].waves = []; //empty array of wave bullets
+            if (tech.isLongitudinal) {
+                b.guns[3].waves = []; //empty array of wave bullets
+                // console.log(b.guns[3].waves)
+                // for (let i = 0; i < b.guns[3].waves.length; i++) {
+                // }
+            }
+
             if (b.guns[10].have) { //do you have mines as a gun
                 let count = 0;
                 for (i = 0, len = bullet.length; i < len; i++) { //count mines left on map
@@ -1236,9 +1168,15 @@ const simulation = {
             if (tech.isMutualism && !tech.isEnergyHealth) {
                 for (let i = 0; i < bullet.length; i++) {
                     if (bullet[i].isMutualismActive) {
-                        m.health += 0.01 + 0.01 * ((bullet[i].isSpore || bullet[i].isFlea) ? 0 : 1)
-                        if (m.health > m.maxHealth) m.health = m.maxHealth;
-                        m.displayHealth();
+                        if (tech.isMutualism && this.isMutualismActive) {
+                            if (tech.isEnergyHealth) {
+                                m.energy += 0.01 + 0.01 * ((bullet[i].isSpore || bullet[i].isFlea) ? 0 : 1)
+                            } else {
+                                m.health += 0.01 + 0.01 * ((bullet[i].isSpore || bullet[i].isFlea) ? 0 : 1)
+                                if (m.health > m.maxHealth) m.health = m.maxHealth;
+                                m.displayHealth();
+                            }
+                        }
                     }
                 }
             }
@@ -1303,6 +1241,7 @@ const simulation = {
             let sporeCount = 0
             let wormCount = 0
             let fleaCount = 0
+            // let zombieCount = 0
             for (let i = 0; i < bullet.length; ++i) {
                 if (bullet[i].isDrone && bullet[i].endCycle !== Infinity) {
                     droneArray.push({
@@ -1317,18 +1256,19 @@ const simulation = {
                 } else if (bullet[i].isFlea) {
                     fleaCount++
                 }
+                // else if (bullet[i].isZombie) {
+                //     zombieCount++
+                // }
             }
 
+            // const where = m.pos
             //respawn drones in animation frame
             requestAnimationFrame(() => {
                 let respawnDrones = () => {
-                    const where = {
-                        x: level.enter.x + 50,
-                        y: level.enter.y - 60
-                    }
                     if (droneArray.length) {
                         requestAnimationFrame(respawnDrones);
                         if (!simulation.paused && !simulation.isChoosing && m.alive) {
+                            const where = { x: level.enter.x + 50, y: level.enter.y - 60 }
                             if (tech.isDroneRadioactive) {
                                 b.droneRadioactive({ x: where.x + 50 * (Math.random() - 0.5), y: where.y + 50 * (Math.random() - 0.5) }, 0)
                                 if (droneArray[0].scale) bullet[bullet.length - 1].size = droneArray[0].scale
@@ -1355,14 +1295,8 @@ const simulation = {
                     requestAnimationFrame(respawnSpores);
                     if (!simulation.paused && !simulation.isChoosing) {
                         sporeCount--
-                        const where = {
-                            x: level.enter.x + 50,
-                            y: level.enter.y - 60
-                        }
-                        b.spore({
-                            x: where.x + 100 * (Math.random() - 0.5),
-                            y: where.y + 120 * (Math.random() - 0.5)
-                        })
+                        const where = { x: level.enter.x + 50, y: level.enter.y - 60 }
+                        b.spore({ x: where.x + 100 * (Math.random() - 0.5), y: where.y + 120 * (Math.random() - 0.5) })
                     }
                 }
             }
@@ -1374,14 +1308,8 @@ const simulation = {
                     requestAnimationFrame(respawnWorms);
                     if (!simulation.paused && !simulation.isChoosing) {
                         wormCount--
-                        const where = {
-                            x: level.enter.x + 50,
-                            y: level.enter.y - 60
-                        }
-                        b.worm({
-                            x: where.x + 100 * (Math.random() - 0.5),
-                            y: where.y + 120 * (Math.random() - 0.5)
-                        })
+                        const where = { x: level.enter.x + 50, y: level.enter.y - 60 }
+                        b.worm({ x: where.x + 100 * (Math.random() - 0.5), y: where.y + 120 * (Math.random() - 0.5) })
                     }
                 }
             }
@@ -1393,23 +1321,27 @@ const simulation = {
                     requestAnimationFrame(respawnFleas);
                     if (!simulation.paused && !simulation.isChoosing) {
                         fleaCount--
-                        const where = {
-                            x: level.enter.x + 50,
-                            y: level.enter.y - 60
-                        }
                         const speed = 6 + 3 * Math.random()
                         const angle = 2 * Math.PI * Math.random()
-                        b.flea({
-                            x: where.x + 100 * (Math.random() - 0.5),
-                            y: where.y + 120 * (Math.random() - 0.5)
-                        }, {
-                            x: speed * Math.cos(angle),
-                            y: speed * Math.sin(angle)
-                        })
+                        const where = { x: level.enter.x + 50, y: level.enter.y - 60 }
+                        b.flea({ x: where.x + 100 * (Math.random() - 0.5), y: where.y + 120 * (Math.random() - 0.5) }, { x: speed * Math.cos(angle), y: speed * Math.sin(angle) })
                     }
                 }
             }
             requestAnimationFrame(respawnFleas);
+
+
+            //respawn spores in animation frame
+            // let respawnZombies = () => {
+            //     if (zombieCount > 0) {
+            //         requestAnimationFrame(respawnZombies);
+            //         if (!simulation.paused && !simulation.isChoosing) {
+            //             zombieCount--
+            //             spawn.zombie(where.x + 100 * (Math.random() - 0.5), where.y + 120 * (Math.random() - 0.5))
+            //         }
+            //     }
+            // }
+            // requestAnimationFrame(respawnZombies);
         }
         if (tech.isQuantumEraser && m.alive) {
             let count = 0
@@ -1430,20 +1362,30 @@ const simulation = {
         }
         removeAll(map);
         map = [];
-        removeAll(body);
-        body = [];
-        removeAll(mob);
-        mob = [];
-        removeAll(powerUp);
-        powerUp = [];
+        // removeAll(body);
+        // body = [];
+        // removeAll(mob);
+        // mob = [];
+        // removeAll(powerUp);
+        // powerUp = [];
+        // removeAll(bullet);
+        // bullet = [];
         removeAll(cons);
         cons = [];
         removeAll(consBB);
         consBB = [];
-        removeAll(bullet);
-        bullet = [];
         removeAll(composite);
         composite = [];
+
+        for (let i = 0; i < bullet.length; i++) queueRemoval('bullet', i);
+        for (let i = 0; i < powerUp.length; i++) queueRemoval('powerUp', i);
+        for (let i = 0; i < body.length; i++) queueRemoval('body', i);
+        for (let i = 0; i < mob.length; i++) queueRemoval('mob', i);
+        // for (let i = 0; i < map.length; i++) queueRemoval('map', i);
+
+
+
+
         // if player was holding something this makes a new copy to hold
         if (holdTarget && m.alive) {
             len = body.length;
@@ -1927,7 +1869,7 @@ const simulation = {
                 ctx.lineTo(bodyDraw[j].x, bodyDraw[j].y);
             }
             ctx.lineTo(bodyDraw[0].x, bodyDraw[0].y);
-            ctx.fillStyle = "rgba(255, 255, 0, 0.4)";
+            ctx.fillStyle = "rgba(0, 0, 0, 0.4)";
             ctx.fill();
             // ctx.stroke();
             //head sensor
@@ -2529,13 +2471,10 @@ const simulation = {
             if (simulation.testing && event.code === "KeyZ" && simulation.constructMapString.length) {
                 if (simulation.constructMapString[simulation.constructMapString.length - 1][6] === 'm') { //remove map from current level
                     const index = map.length - 1
-                    Matter.Composite.remove(engine.world, map[index]);
-                    map.splice(index, 1);
+                    queueRemoval('body', index)
                     simulation.draw.setPaths() //update map graphics  
                 } else if (simulation.constructMapString[simulation.constructMapString.length - 1][6] === 'b') { //remove body from current level
-                    const index = body.length - 1
-                    Matter.Composite.remove(engine.world, body[index]);
-                    body.splice(index, 1);
+                    queueRemoval('body', body.length - 1)
                 }
                 simulation.constructMapString.pop();
                 simulation.outputMapString();
