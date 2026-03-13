@@ -343,7 +343,7 @@ const spawn = {
             if (!simulation.isTimeSkipping) {
                 const scale = ((tech.isMoveDarkMatter || tech.isNotDarkMatter) ? 1.6 : 1) * level.isReducedRegen
                 const sine = Math.sin(simulation.cycle * 0.015)
-                this.radius = 111 * tech.isDarkStar + 370 * (1 + 0.1 * sine)
+                this.radius = 148 * tech.isDarkStar + 370 * (1 + 0.1 * sine)
                 //chase player
                 const sub = Vector.sub(player.position, this.position)
                 const mag = Vector.magnitude(sub)
@@ -368,7 +368,7 @@ const spawn = {
                         ctx.arc(m.pos.x, m.pos.y, 36 * player.scale, 0, 2 * Math.PI);
                         ctx.lineWidth = 10;
                         ctx.stroke();
-                        if (tech.isDarkEnergy) m.energy += 0.0017 * scale
+                        if (tech.isDarkEnergy) m.energy += 0.00255 * scale
                     }
                 } else {
                     if (mag < this.radius) { //buff to player when inside radius
@@ -379,7 +379,7 @@ const spawn = {
                         ctx.arc(m.pos.x, m.pos.y, 36 * player.scale, 0, 2 * Math.PI);
                         ctx.lineWidth = 10;
                         ctx.stroke();
-                        if (tech.isDarkEnergy) m.energy += 0.0017 * scale
+                        if (tech.isDarkEnergy) m.energy += 0.00255 * scale
                     } else {
                         tech.isHarmDarkMatter = false;
                     }
@@ -398,7 +398,7 @@ const spawn = {
                     for (let i = 0, len = mob.length; i < len; ++i) {
                         if (mob[i].alive && !mob[i].isShielded) {
                             if (Vector.magnitude(Vector.sub(this.position, mob[i].position)) - mob[i].radius < this.radius) {
-                                const dmg = 0.03 * scale
+                                const dmg = 0.035 * scale
                                 mob[i].damage(dmg);
                                 simulation.drawList.push({ //add dmg to draw queue
                                     x: mob[i].position.x,
@@ -1712,9 +1712,10 @@ const spawn = {
                 //find blocks to turn into mobs
                 for (let i = 0; i < body.length; i++) {
                     if (Vector.magnitude(Vector.sub(this.position, body[i].position)) < 700 && !body[i].isNotHoldable && !body[i].isInvulnerable) { // check distance for each block
+                        Matter.Composite.remove(engine.world, body[i]);
                         this.target = null //player;
                         spawn.blockMob(body[i].position.x, body[i].position.y, body[i], 0);
-                        queueRemoval('body', i)
+                        body.splice(i, 1);
                         activeBeams.push([beamTotalDuration, mob[mob.length - 1]]);
                     }
                 }
@@ -1898,9 +1899,10 @@ const spawn = {
                 //find blocks to turn into mobs
                 for (let i = 0; i < body.length; i++) {
                     if (Vector.magnitude(Vector.sub(this.position, body[i].position)) < 700 && !body[i].isNotHoldable && !body[i].isInvulnerable) { // check distance for each block
+                        Matter.Composite.remove(engine.world, body[i]);
                         this.target = null //player;
                         spawn.blockMob(body[i].position.x, body[i].position.y, body[i], 0, true);
-                        queueRemoval('body', i)
+                        body.splice(i, 1);
                         activeBeams.push([beamTotalDuration, mob[mob.length - 1]]);
                     }
                 }
@@ -8053,7 +8055,7 @@ const spawn = {
 
 
 
-                    //eating blocks
+
                     for (let i = 0; i < body.length; i++) {
                         if (!body[i].isInvulnerable && !body[i].isNotHoldable) {
                             const diff = Vector.sub(this.position, body[i].position);
@@ -8080,7 +8082,8 @@ const spawn = {
                                     }
                                 });
 
-                                queueRemoval('body', i)
+                                Matter.Composite.remove(engine.world, body[i]);
+                                body.splice(i, 1);
 
                                 this.health += 0.25;
                                 if (this.health > 1) this.health = 1;
@@ -8358,7 +8361,8 @@ const spawn = {
                                     }
                                 });
 
-                                queueRemoval('body', i)
+                                Matter.Composite.remove(engine.world, body[i]);
+                                body.splice(i, 1);
 
                                 this.health += 0.25;
                                 if (this.health > 1) this.health = 1;
@@ -15162,7 +15166,8 @@ const spawn = {
                     //remove difficulty power up if the wire breaks to prevent getting power ups and then making the difficulty harder
                     for (let i = 0; i < powerUp.length; ++i) {
                         if (powerUp[i].name === "difficulty") {
-                            queueRemoval('powerUp', i)
+                            Matter.Composite.remove(engine.world, powerUp[i]);
+                            powerUp.splice(i, 1);
                         }
                     }
 

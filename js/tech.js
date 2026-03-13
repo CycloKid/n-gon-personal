@@ -2881,7 +2881,7 @@ const tech = {
     {
         name: "dark matter",
         descriptionFunction() {
-            return `<strong class='color-dark-matter'>dark matter</strong> slowly gravitates <strong>towards</strong> you<br><strong>0.3x</strong> <strong class='color-defense'>damage taken</strong> <strong>${tech.isNotDarkMatter ? "outside" : "inside"}</strong> <strong class='color-dark-matter'>dark matter</strong>`
+            return `<strong class='color-dark-matter'>dark matter</strong> slowly gravitates <strong>towards</strong> you<br><strong>0.25x</strong> <strong class='color-defense'>damage taken</strong> <strong>${tech.isNotDarkMatter ? "outside" : "inside"}</strong> <strong class='color-dark-matter'>dark matter</strong>`
         },
         maxCount: 1,
         count: 0,
@@ -2926,7 +2926,7 @@ const tech = {
     {
         name: "dark energy",
         descriptionFunction() {
-            return `while <strong>${tech.isNotDarkMatter ? "outside" : "inside"}</strong> <strong class='color-dark-matter'>dark matter</strong><br>generate <strong>10</strong> <strong class='color-f'>energy</strong> per second`
+            return `while <strong>${tech.isNotDarkMatter ? "outside" : "inside"}</strong> <strong class='color-dark-matter'>dark matter</strong><br>generate <strong>15</strong> <strong class='color-f'>energy</strong> per second`
         },
         maxCount: 1,
         count: 0,
@@ -2981,7 +2981,7 @@ const tech = {
     },
     {
         name: "dark star",
-        description: `mobs <strong>inside</strong> <strong class='color-dark-matter'>dark matter</strong> are <strong class='color-d'>damaged</strong><br><strong>1.3x</strong> <strong class='color-dark-matter'>dark matter</strong> radius`,
+        description: `mobs <strong>inside</strong> <strong class='color-dark-matter'>dark matter</strong> are <strong class='color-d'>damaged</strong><br><strong>1.4x</strong> <strong class='color-dark-matter'>dark matter</strong> radius`,
         maxCount: 1,
         count: 0,
         frequency: 2,
@@ -3346,6 +3346,7 @@ const tech = {
     {
         name: "recycling",
         descriptionFunction() {
+            // return `if a mob has <strong>died</strong> in the last <strong>5</strong> seconds<br>recover <strong>0.005x</strong> maximum ${tech.isEnergyHealth ? "<strong class='color-f'>energy</strong>" : "<strong class='color-h'>health</strong>"} per second`
             return `recover <strong>0.005x</strong> maximum ${tech.isEnergyHealth ? "<strong class='color-f'>energy</strong>" : "<strong class='color-h'>health</strong>"} per second<br>if a mob has <strong>died</strong> in the last <strong>5</strong> seconds <em style ="float: right;">(${(0.5 * m.maxHealth).toFixed(1)}/s)</em>`
         },
         description: "",
@@ -5257,10 +5258,10 @@ const tech = {
                     }
 
                     // check for collisions with mobs
-                    if (!m.isTimeDilated) {
+                    if (!m.isTimeDilated && !(tech.isIntangible && m.isCloak)) {
                         for (let i = 1; i < this.segments.length - 1; i++) {
                             let hit = Matter.Query.ray(mob, this.segments[i], this.segments[i + 1])
-                            if (hit.length && !hit[0].body.isUnblockable) {
+                            if (hit.length && !hit[0].body.isUnblockable && hit[0].body.collisionFilter.mask > 0) {
                                 if (tech.isChitin) { //tail segments past the collisions point are made into worms
                                     hit = hit[0].body
                                     for (let j = Math.max(1, i); j < this.segments.length - 1; j++) {
@@ -5275,7 +5276,11 @@ const tech = {
                                         wireArray: tech.wire.segments.slice(cutIndex), //this should be the part of the wire that is recently cut
                                         cycle: 10 + 2 * Math.min(100, long),
                                         do() {
-                                            m.immuneCycle = m.cycle + 10;
+                                            if (m.immuneCycle > m.cycle) {
+                                                m.immuneCycle++
+                                            } else {
+                                                m.immuneCycle = m.cycle + 10;
+                                            }
                                             m.isTimeDilated = true;
 
                                             // Draw the background time-stop effect
@@ -6546,7 +6551,7 @@ const tech = {
         frequency: 1,
         frequencyDefault: 1,
         allowed() {
-            return (tech.haveGunCheck("shotgun") && !tech.isNailShot && !tech.isIceShot && !tech.isLaserShot && !tech.isRivets && !tech.isFoamShot && !tech.isSporeWorm && !tech.isSporeFlea && !tech.isNeedles) || ((tech.haveGunCheck("super balls") || tech.isSuperMine) && !tech.isSuperBounce && !tech.isFoamBall && !tech.isSuperHarm) || (tech.isRivets && !tech.isNailCrit) || (m.fieldMode === 4 && simulation.molecularMode === 3) || (tech.haveGunCheck("drones") && !tech.isForeverDrones && !tech.isDroneRadioactive && !tech.isDroneTeleport)
+            return (tech.haveGunCheck("shotgun") && !tech.isNailShot && !tech.isIceShot && !tech.isLaserShot && !tech.isRivets && !tech.isFoamShot && !tech.isSporeWorm && !tech.isSporeFlea && !tech.isNeedles) || ((tech.haveGunCheck("super balls") || tech.isSuperMine) && !tech.isSuperBounce && !tech.isFoamBall && !tech.isSlime) || (tech.isRivets && !tech.isNailCrit) || (m.fieldMode === 4 && simulation.molecularMode === 3) || (tech.haveGunCheck("drones") && !tech.isForeverDrones && !tech.isDroneRadioactive && !tech.isDroneTeleport)
         },
         requires: "shotgun, super balls, rivets, drones, not irradiated drones, burst drones, polyurethane, Zectron, photonic crystal",
         effect() {
@@ -6576,8 +6581,8 @@ const tech = {
         }
     },
     {
-        name: "Zectron",
-        description: `<strong>2x</strong> <strong>super ball</strong> <strong class='color-d'>damage</strong>, but<br>after you collide with <strong>super balls</strong> they stop`,
+        name: "slime",
+        description: `<strong>2x</strong> <strong>super ball</strong> <strong class='color-d'>damage</strong>, but<br>remove <strong>super balls</strong> after you collide with them`,
         isGunTech: true,
         maxCount: 1,
         count: 0,
@@ -6588,10 +6593,31 @@ const tech = {
         },
         requires: "super balls not incendiary ammunition, uncertainty principle",
         effect() {
-            tech.isSuperHarm = true
+            tech.isSlime = true
         },
         remove() {
-            tech.isSuperHarm = false
+            tech.isSlime = false
+        }
+    },
+    {
+        name: "borax",
+        descriptionFunction() {
+            return `after <strong>Zectron</strong> removes a <strong>super ball</strong><br>gain <strong>1</strong> <strong class='color-ammo'>ammo</strong> for <strong>super balls</strong>`
+        },
+        isGunTech: true,
+        maxCount: 1,
+        count: 0,
+        frequency: 2,
+        frequencyDefault: 2,
+        allowed() {
+            return (tech.haveGunCheck("super balls") || tech.isSuperMine) && tech.isSlime
+        },
+        requires: "slime",
+        effect() {
+            tech.isSlimeAmmo = true
+        },
+        remove() {
+            tech.isSlimeAmmo = false
         }
     },
     {
@@ -7519,6 +7545,7 @@ const tech = {
         frequencyDefault: 2,
         allowed() {
             // return (tech.haveGunCheck("nail gun") && !tech.isRivets && !tech.isNeedles) || (tech.haveGunCheck("mines"))
+            // return tech.isMineDrop || tech.isNailBotUpgrade || tech.hookNails || tech.fragments || tech.nailsDeathMob || (tech.haveGunCheck("mine") && !(tech.isLaserMine || tech.isFoamMine)) || (tech.haveGunCheck("nail gun") && !tech.isRivets && !tech.isNeedles) || (tech.haveGunCheck("shotgun") && (tech.isNeedles || tech.isNailShot) && !tech.isRivets && !tech.isNeedles) || (tech.haveGunCheck("super balls") && !tech.isIncendiary)
             return tech.isNailBotUpgrade || (tech.haveGunCheck("mine") && !(tech.isLaserMine || tech.isFoamMine)) || (tech.haveGunCheck("nail gun") && !tech.isRivets && !tech.isNeedles) || (tech.haveGunCheck("shotgun") && (tech.isNeedles || tech.isNailShot) && !tech.isRivets && !tech.isNeedles) || (tech.haveGunCheck("super balls") && !tech.isIncendiary)
         },
         //
@@ -8173,7 +8200,7 @@ const tech = {
         frequency: 1,
         frequencyDefault: 1,
         allowed() {
-            return (tech.haveGunCheck("foam") || tech.isFoamBotUpgrade || tech.isFoamShot || tech.isFoamBall || tech.isFoamMine) || (tech.haveGunCheck("wave") && !tech.is360Longitudinal) || (tech.haveGunCheck("super balls") && !tech.isSuperHarm) || tech.isSoundBotUpgrade
+            return (tech.haveGunCheck("foam") || tech.isFoamBotUpgrade || tech.isFoamShot || tech.isFoamBall || tech.isFoamMine) || (tech.haveGunCheck("wave") && !tech.is360Longitudinal) || (tech.haveGunCheck("super balls") && !tech.isSlime) || tech.isSoundBotUpgrade
         },
         requires: "foam, wave, super balls, not isotropic, Zectron",
         effect() {
@@ -8738,7 +8765,8 @@ const tech = {
             for (let i = powerUp.length - 1; i > -1; i--) {
                 if (powerUp[i].name === "ammo") {
                     powerUps.spawn(powerUp[i].position.x + 50 * (Math.random() - 0.5), powerUp[i].position.y + 50 * (Math.random() - 0.5), "boost");
-                    queueRemoval('powerUp', i)
+                    Matter.Composite.remove(engine.world, powerUp[i]);
+                    powerUp.splice(i, 1);
                 }
             }
 
@@ -10859,9 +10887,10 @@ const tech = {
             setInterval(() => {
                 for (let i = body.length - 1; i > -1; i--) {
                     if (!body[i].isNotHoldable) {
+                        Matter.Composite.remove(engine.world, body[i]);
                         spawn.blockMob(body[i].position.x, body[i].position.y, body[i], 0);
                         if (!body[i].isAboutToBeRemoved) mob[mob.length - 1].isDropPowerUp = true
-                        queueRemoval('body', i)
+                        body.splice(i, 1);
                     }
                 }
             }, 6000);
@@ -10893,7 +10922,8 @@ const tech = {
                     setTimeout(() => { //remove block
                         for (let i = 0; i < body.length; i++) {
                             if (body[i] === bodyBullet) {
-                                queueRemoval('body', i)
+                                Matter.Composite.remove(engine.world, body[i]);
+                                body.splice(i, 1);
                             }
                         }
                     }, 4000 + Math.floor(9000 * Math.random()));
@@ -13881,7 +13911,7 @@ const tech = {
     buffedGun: 0,
     isGunChoice: null,
     railChargeRate: null,
-    isSuperHarm: null,
+    isSlime: null,
     isZombieMobs: null,
     isSuperMine: null,
     sentryAmmo: null,
@@ -13960,4 +13990,5 @@ const tech = {
     isLaserWire: null,
     isMycelium: null,
     isEigenstate: null,
+    isSlimeAmmo: null,
 }
