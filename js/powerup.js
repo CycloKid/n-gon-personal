@@ -63,14 +63,18 @@ const powerUps = {
         },
         heal(num = 1) {
             if (powerUps.healGiveMaxEnergy) {
-                if (num === 1) return `<div class="heal-circle-energy"></div>`
-
+                switch (num) {
+                    case 1:
+                        return `<div class="energy-circle"></div>`
+                }
                 let text = '<span style="position:relative;">'
                 for (let i = 0; i < num; i++) {
-                    text += `<div class="heal-circle-energy" style="position:absolute; top:1px; left:${i * 0.6}em;"></div>`
+                    text += `<div class="energy-circle" style="position:absolute; top:1.5px; left:${i * 0.5}em;"></div>`
                 }
-                text += '</span> &nbsp; &nbsp; '
-                for (let i = 0; i < num; i++) text += '&nbsp; '
+                text += '</span> &nbsp; &nbsp;'
+                for (let i = 0; i < num; i++) {
+                    text += '&thinsp; '
+                }
                 return text
             } else {
                 if (num === 1) return `<div class="heal-circle"></div>`
@@ -116,6 +120,21 @@ const powerUps = {
             }
             return text
         },
+        Casimir(num = 1) {
+            switch (num) {
+                case 1:
+                    return `<div class="energy-circle"></div>`
+            }
+            let text = '<span style="position:relative;">'
+            for (let i = 0; i < num; i++) {
+                text += `<div class="energy-circle" style="position:absolute; top:1.5px; left:${i * 0.5}em;"></div>`
+            }
+            text += '</span> &nbsp; &nbsp;'
+            for (let i = 0; i < num; i++) {
+                text += '&thinsp; '
+            }
+            return text
+        },
         boost(num = 1) {
             switch (num) {
                 case 1:
@@ -135,7 +154,7 @@ const powerUps = {
     totalPowerUps: 0, //used for tech that count power ups at the end of a level
     do() { },
     setPowerUpMode() {
-        if (tech.duplicationChance() > 0 || tech.isAnthropicTech) {
+        if (tech.duplicationChance() > 0 || tech.isAnthropicTech || tech.isGUT) {
             powerUps.draw = powerUps.drawDup
             if (tech.isPowerUpsVanish) {
                 if (tech.isHealAttract) {
@@ -408,21 +427,22 @@ const powerUps = {
         // if (document.fullscreenElement) mouseMove.isLockPointer = true//this interacts with the mousedown event listener to exit pointer lock
     },
     animatePowerUpGrab(color) {
-        simulation.ephemera.push({
-            count: 25, //cycles before it self removes
-            do() {
-                this.count -= 2
-                if (this.count < 5) simulation.removeEphemera(this)
+        if (!localSettings.isHideHUD) {
+            simulation.ephemera.push({
+                count: 25, //cycles before it self removes
+                do() {
+                    this.count -= 2
+                    if (this.count < 5) simulation.removeEphemera(this)
 
-                ctx.beginPath();
-                ctx.arc(m.pos.x, m.pos.y, Math.max(3, this.count), 0, 2 * Math.PI);
-                ctx.fillStyle = color
-                ctx.fill();
-                // ctx.strokeStyle = "hsla(200,50%,61%,0.18)";
-                // ctx.stroke();
-            },
-        })
-
+                    ctx.beginPath();
+                    ctx.arc(m.pos.x, m.pos.y, Math.max(3, this.count), 0, 2 * Math.PI);
+                    ctx.fillStyle = color
+                    ctx.fill();
+                    // ctx.strokeStyle = "hsla(200,50%,61%,0.18)";
+                    // ctx.stroke();
+                },
+            })
+        }
     },
     instructions: {
         name: "instructions",
@@ -719,6 +739,55 @@ const powerUps = {
             }
         },
     },
+    Casimir: {
+        name: "Casimir", //max energy
+        color: "#ff0", //"#0cf",
+        size() {
+            return 13 + 6 * tech.mergedList.length;
+        },
+        amount() {
+            return 0.1 * tech.largerHeals * (tech.isHalfHeals ? 0.5 : 1)
+        },
+        descriptionFunction() {
+            return `${powerUps.orb.Casimir(1)} give <strong>${(this.amount() * 100).toFixed(0)}</strong> maximum <strong class='color-f'>energy</strong>${tech.isCasimirHealth ? ` and <strong class='color-h'>health</strong>` : ""}`
+        },
+        random() {
+            if (tech.isCasimirRandom) {
+                if (Math.random() < 0.33) {
+                    m.energy = 0.001
+                } else if (m.energy < m.maxEnergy) {
+                    m.energy = m.maxEnergy * 3
+                    for (let i = 0; i < 4; i++)simulation.energyGenGraphic()
+                }
+            }
+        },
+        effect() {
+            powerUps.animatePowerUpGrab('rgba(255, 255, 0,0.7)')
+            const amount = powerUps.Casimir.amount()
+            tech.healMaxEnergyBonus += amount
+            m.energy += amount
+            m.setMaxEnergy();
+            if (tech.isCasimirHealth) {
+                tech.extraMaxHealth += amount
+                m.setMaxHealth(true);
+            }
+            powerUps.Casimir.random()
+
+            if (tech.mergedList.length) {
+                simulation.ephemera.push({ //call each power up that's been merged with a delay
+                    index: tech.mergedList.length,
+                    cycleStart: m.cycle,
+                    do() {
+                        if (!((m.cycle + this.cycleStart) % 10)) {
+                            this.index--
+                            powerUps[tech.mergedList[this.index]].effect()
+                            if (this.index === 0) simulation.removeEphemera(this)
+                        }
+                    },
+                })
+            }
+        },
+    },
     coupling: {
         name: "coupling",
         color: "#0ae", //"#0cf",
@@ -727,8 +796,9 @@ const powerUps = {
         },
         effect() {
             powerUps.animatePowerUpGrab('rgba(0, 170, 238,0.3)')
-
             m.couplingChange(1)
+            powerUps.Casimir.random()
+            powerUps.Casimir.random()
         },
     },
     boost: {
@@ -744,6 +814,7 @@ const powerUps = {
         effect() {
             powerUps.animatePowerUpGrab('rgba(255, 0, 0, 0.5)')
             powerUps.boost.endCycle = simulation.cycle + Math.floor(Math.max(0, powerUps.boost.endCycle - simulation.cycle) * 0.6) + powerUps.boost.duration //duration+seconds plus 2/3 of current time left
+            powerUps.Casimir.random()
         },
         draw() {
             // console.log(this.endCycle)
@@ -788,6 +859,7 @@ const powerUps = {
         effect() {
             powerUps.animatePowerUpGrab('rgba(255, 119, 187,0.3)')
             powerUps.research.changeRerolls(1)
+            powerUps.Casimir.random()
         },
         isMakingBots: false, //to prevent bot fabrication from running 2 sessions at once
         changeRerolls(amount) {
@@ -950,15 +1022,18 @@ const powerUps = {
                     }
                 }
             }
-            if (powerUps.healGiveMaxEnergy) {
-                tech.healMaxEnergyBonus += 0.15 * tech.largerHeals * (tech.isHalfHeals ? 0.5 : 1)
-                m.setMaxEnergy();
-            }
+            powerUps.Casimir.random()
+            // if (powerUps.healGiveMaxEnergy) {
+            //     tech.healMaxEnergyBonus += 0.15 * tech.largerHeals * (tech.isHalfHeals ? 0.5 : 1)
+            //     m.setMaxEnergy();
+            // }
         },
         spawn(x, y, size) { //used to spawn a heal with a specific size / heal amount, not normally used
-            powerUps.directSpawn(x, y, "heal", false, size)
+            const name = powerUps.healGiveMaxEnergy ? "Casimir" : "heal"
+            if (name === "Casimir") size = powerUps[name].size()
+            powerUps.directSpawn(x, y, name, false, size)
             if (!level.isNextLevelPowerUps && Math.random() < tech.duplicationChance()) {
-                powerUps.directSpawn(x, y, "heal", false, size)
+                powerUps.directSpawn(x, y, name, false, size)
                 powerUp[powerUp.length - 1].isDuplicated = true
             }
         }
@@ -996,6 +1071,7 @@ const powerUps = {
                 }
                 simulation.updateGunHUD();
             }
+            powerUps.Casimir.random()
         }
     },
     cancelText(type) {
@@ -1556,10 +1632,11 @@ const powerUps = {
     },
     spawnDelay(type, count, delay = 2, location = m.pos) {
         count *= delay
+        const cap = (200 * (localSettings.isHideHUD ? 0.5 : 1))
         let cycle = () => {
             if (count > 0) {
                 if (m.alive) requestAnimationFrame(cycle);
-                if (!simulation.paused && !simulation.isChoosing && powerUp.length < 300) { //&& !(simulation.cycle % 2)
+                if (!simulation.paused && !simulation.isChoosing && powerUp.length < cap) { //&& !(simulation.cycle % 2)
                     count--
                     if (!(count % delay)) {
                         const where = { x: location.x + 50 * (Math.random() - 0.5), y: location.y + 50 * (Math.random() - 0.5) }
@@ -1573,16 +1650,39 @@ const powerUps = {
     onPickUp(who) {
         powerUps.totalUsed++
         powerUps.research.currentRerollCount = 0
-        if (tech.isTechDamage && who.name === "tech") m.takeDamage(0.1)
-        if (tech.isMassEnergy) {
+        if (tech.isTechDamage && who.name === "tech") {
+            if ((!tech.isEnergyHealth && m.health < 0.1 * m.defense()) || (tech.isEnergyHealth && m.energy < 0.1 * Math.pow(m.defense(), 0.6))) {
+                for (let i = 0; i < tech.tech.length; i++) {
+                    if (tech.tech[i].name === "antiscience") {
+                        powerUps.ejectTech(i)
+                        if (tech.isEnergyHealth) {
+                            simulation.inGameConsole(`<span class='color-var'>m</span>.<span class='color-f'>energy</span> = ${(100 * m.energy).toFixed(1)} <em>//ejecting antiscience to prevent m.death()</em>`)
+                        } else {
+                            simulation.inGameConsole(`<span class='color-var'>m</span>.<span class='color-h'>health</span> = ${(100 * m.health).toFixed(1)} <em>//ejecting antiscience to prevent m.death()</em>`)
+                        }
+                        break
+                    }
+                }
+            } else {
+                m.takeDamage(0.1)
+                if (tech.isEnergyHealth) {
+                    simulation.inGameConsole(`<span class='color-var'>m</span>.<span class='color-f'>energy</span> <span class='color-symbol'>-=</span> ${(10 * Math.pow(m.defense(), 0.6)).toFixed(1)} <em>//antiscience</em>`)
+                } else {
+                    simulation.inGameConsole(`<span class='color-var'>m</span>.<span class='color-h'>health</span> <span class='color-symbol'>-=</span> ${(10 * m.defense()).toFixed(1)} <em>//antiscience</em>`)
+                }
+            }
+        }
+        if (tech.isPairProduction) {
             if (!m.isTimeDilated) {
                 requestAnimationFrame(() => {
                     simulation.timePlayerSkip(15)
                     simulation.loop(); //ending with a wipe and normal loop fixes some very minor graphical issues where things are draw in the wrong locations
                     m.energy += 2 * level.isReducedRegen;
+                    for (let i = 0; i < 3; i++)simulation.energyGenGraphic()
                 }); //wrapping in animation frame prevents errors, probably
             } else {
                 m.energy += 2 * level.isReducedRegen;
+                for (let i = 0; i < 3; i++)simulation.energyGenGraphic()
             }
         }
         if (tech.isMineDrop && bullet.length < 150 && Math.random() < 0.5) {
@@ -1595,6 +1695,12 @@ const powerUps = {
         if (level.isNoDamage) level.noDamageCycle = m.cycle
     },
     spawnRandomPowerUp(x, y) { //mostly used after mob dies,  doesn't always return a power up
+        if (tech.isCouplingPowerUps && Math.random() < 0.15) {
+            powerUps.spawn(x + 10, y - 1, "coupling");
+        }
+        if (tech.isCasimir && Math.random() < 0.1) {
+            powerUps.spawn(10 - x, y + 1, "Casimir");
+        }
         if (!tech.isEnergyHealth && (Math.random() * Math.random() - 0.3 > Math.sqrt(m.health)) || Math.random() < 0.04) { //spawn heal chance is higher at low health
             powerUps.spawn(x, y, "heal");
             return;
@@ -1605,10 +1711,6 @@ const powerUps = {
         }
         if (Math.random() < 0.0016) {
             powerUps.spawn(x, y, "field");
-            return;
-        }
-        if (tech.isCouplingPowerUps && Math.random() < 0.17) {
-            powerUps.spawn(x, y, "coupling");
             return;
         }
         // 0.03 * (level.levelsCleared > 7) + 0.05 * (level.levelsCleared > 10)
@@ -1751,16 +1853,17 @@ const powerUps = {
     },
     pauseEjectTech(index) {
         if ((tech.isPauseEjectTech || simulation.testing) && !simulation.isChoosing && !tech.tech[index].isInstant && m.immuneCycle < m.cycle) {
-            const dmg = tech.pauseEjectTech * 0.01
-            if ((!tech.isEnergyHealth && dmg * m.defense() < m.health) || (tech.isEnergyHealth && dmg * Math.pow(m.defense(), 0.6) < m.energy)) {
+            const dmg = tech.pauseEjectTech * 0.01 //* (tech.isEnergyHealth ? Math.pow(m.defense(), 0.6) : m.defense())
+
+            if ((!tech.isEnergyHealth && dmg < m.health) || (tech.isEnergyHealth && dmg < m.energy)) {
                 tech.tech[index].frequency = 0 //banish tech
                 powerUps.ejectTech(index)
-                if (m.immuneCycle < m.cycle) m.takeDamage(tech.pauseEjectTech * 0.01, false)
+                if (m.immuneCycle < m.cycle) m.takeDamage(dmg, false)
                 tech.pauseEjectTech *= 2
                 if (tech.isEnergyHealth) {
-                    simulation.inGameConsole(`<span class='color-var'>m</span>.<span class='color-f'>energy</span> <span class='color-symbol'>-=</span> ${(100 * dmg * m.defense()).toFixed(1)} <em>//paradigm shift</em>`)
+                    simulation.inGameConsole(`<span class='color-var'>m</span>.<span class='color-f'>energy</span> <span class='color-symbol'>-=</span> ${(100 * dmg).toFixed(1)} <em>//paradigm shift</em>`)
                 } else {
-                    simulation.inGameConsole(`<span class='color-var'>m</span>.<span class='color-h'>health</span> <span class='color-symbol'>-=</span> ${(100 * dmg * m.defense()).toFixed(1)} <em>//paradigm shift</em>`)
+                    simulation.inGameConsole(`<span class='color-var'>m</span>.<span class='color-h'>health</span> <span class='color-symbol'>-=</span> ${(100 * dmg).toFixed(1)} <em>//paradigm shift</em>`)
                 }
 
 
@@ -1794,9 +1897,10 @@ const powerUps = {
         }
 
         //count big power ups and small power ups
-        let options = ["heal", "research", tech.isBoostReplaceAmmo ? "boost" : "ammo"]
+        let options = [powerUps.healGiveMaxEnergy ? "Casimir" : "heal", "research", tech.isBoostReplaceAmmo ? "boost" : "ammo"]
         if (m.coupling) options.push("coupling")
         if (tech.isBoostPowerUps) options.push("boost")
+        if (tech.isCasimir) options.push("Casimir")
 
         let bigIndexes = []
         let smallIndexes = []
@@ -1811,7 +1915,7 @@ const powerUps = {
         if (smallIndexes.length > 2 && Math.random() < 0.66) {             // console.log("no big, at least 3 small can combine")
             for (let j = 0; j < 3; j++) {
                 for (let i = 0; i < powerUp.length; i++) {
-                    if (powerUp[i].name === "heal" || powerUp[i].name === "research" || powerUp[i].name === "ammo" || powerUp[i].name === "coupling" || powerUp[i].name === "boost") {
+                    if (powerUp[i].name === "heal" || powerUp[i].name === "research" || powerUp[i].name === "ammo" || powerUp[i].name === "coupling" || powerUp[i].name === "boost" || powerUp[i].name === "Casimir") {
                         Matter.Composite.remove(engine.world, powerUp[i]);
                         powerUp.splice(i, 1);
                         break
@@ -1841,15 +1945,64 @@ const powerUps = {
                 name = 'boost'
                 size = powerUps[name].size()
             }
-            powerUps.directSpawn(x, y, name, moving, size)
-            if (!level.isNextLevelPowerUps && Math.random() < tech.duplicationChance()) {
-                powerUps.directSpawn(x, y, name, moving, size, true)
-                powerUp[powerUp.length - 1].isDuplicated = true
-                if (tech.isDupEnergy) m.energy *= 2
+            if (name === "heal" && powerUps.healGiveMaxEnergy) {
+                name = "Casimir"
+                size = powerUps[name].size()
+            }
+            if (tech.isGUT) {
+                if (name === "field" || name === "gun") {
+                    size = powerUps["coupling"].size()
+                    powerUps.directSpawn(x - 10, y + 10, "coupling", moving, size, true)
+                    powerUps.directSpawn(x + 10, y + 10, "coupling", moving, size, true)
+                    powerUps.directSpawn(x - 10, y - 10, "coupling", moving, size, true)
+                    powerUps.directSpawn(x + 10, y - 10, "coupling", moving, size, true)
+                    if (tech.isDupEnergy) {
+                        m.energy *= 2
+                        for (let i = 0; i < 3; i++)simulation.energyGenGraphic()
+                    }
+                } else if (name === "coupling") {
+                    powerUps.directSpawn(x + 15, y, "coupling", moving, size)
+                    // powerUp[powerUp.length - 1].isDuplicated = true
+                    powerUps.directSpawn(x - 15, y, "coupling", moving, size, true)
+                    // powerUp[powerUp.length - 1].isDuplicated = true
+                    if (tech.isDupEnergy) {
+                        m.energy *= 2
+                        for (let i = 0; i < 3; i++)simulation.energyGenGraphic()
+                    }
+                } else {
+                    powerUps.directSpawn(x, y, name, moving, size)
+                    if (!level.isNextLevelPowerUps && Math.random() < tech.duplicationChance()) {
+                        powerUps.directSpawn(x, y, name, moving, size, true)
+                        // powerUp[powerUp.length - 1].isDuplicated = true
+                        if (tech.isDupEnergy) {
+                            m.energy *= 2
+                            for (let i = 0; i < 3; i++)simulation.energyGenGraphic()
+                        }
+                    }
+                }
+            } else {
+                powerUps.directSpawn(x, y, name, moving, size)
+                if (!level.isNextLevelPowerUps && Math.random() < tech.duplicationChance()) {
+                    powerUps.directSpawn(x, y, name, moving, size, true)
+                    // powerUp[powerUp.length - 1].isDuplicated = true
+                    if (tech.isDupEnergy) {
+                        m.energy *= 2
+                        for (let i = 0; i < 3; i++)simulation.energyGenGraphic()
+                    }
+                }
             }
         }
     },
     directSpawn(x, y, name, moving = true, size = powerUps[name].size(), isDuplicated = false) {
+        if (tech.mergedList.length) {
+            for (let i = 0; i < tech.mergedList.length; i++) {
+                if (name === tech.mergedList[i]) {
+                    name = "Casimir"
+                    size = powerUps[name].size()
+                }
+            }
+        }
+
         if (level.isNextLevelPowerUps) {
             powerUps.powerUpStorage.push({ name: name, size: size })
             return

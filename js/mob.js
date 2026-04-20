@@ -1112,7 +1112,10 @@ const mobs = {
                         if (tech.energySiphon && this.isDropPowerUp && m.immuneCycle < m.cycle) {
                             //dmg !== Infinity &&
                             const regen = Math.min(this.health, dmg) * tech.energySiphon * level.isReducedRegen
-                            if (!isNaN(regen) && regen !== Infinity) m.energy += regen
+                            if (!isNaN(regen) && regen !== Infinity) {
+                                m.energy += regen //max regen is 0.04 with one stack of tech.energySiphon
+                                simulation.energyGenGraphic(3 + Math.min(20, Math.floor(400 * regen)))
+                            }
                         }
                         dmg /= Math.sqrt(this.mass)
                     }
@@ -1267,6 +1270,11 @@ const mobs = {
                     }
 
                     if (tech.isVerlet && !m.isTimeDilated) {
+                        if (tech.isBarycenter) {
+                            b.orbitBot(player.position, false);
+                            bullet[bullet.length - 1].endCycle = simulation.cycle + 1320 //15 seconds
+                        }
+
                         requestAnimationFrame(() => {
                             simulation.timePlayerSkip(this.isBoss ? 60 : 30)
                             simulation.loop(); //ending with a wipe and normal loop fixes some very minor graphical issues where things are draw in the wrong locations
@@ -1328,6 +1336,11 @@ const mobs = {
                                 tech.wire.segments.push({ x: last.x, y: last.y, oldX: last.x, oldY: last.y });
                             }
                         }
+                    }
+                    if (tech.isConchoidal) {
+                        const dmg = 1.04
+                        m.damageDone *= dmg
+                        tech.conchoidalDamage *= dmg
                     }
                     if (tech.isExplodeMob) {
                         b.explosion(this.position, Math.min(700, Math.sqrt(this.mass + 6) * (30 + 60 * Math.random())))

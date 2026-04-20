@@ -287,8 +287,10 @@ const b = {
     fireCDscale: 1,
     setFireCD() {
         b.fireCDscale = tech.fireRate * tech.slowFire * tech.researchHaste * tech.slowFireDamage * tech.fastTimeFire
+        if (level.isSlowFireRate) b.fireCDscale *= 2
         if (m.fieldMode === 6) b.fireCDscale *= 0.8
-        if (tech.isFireRateForGuns) b.fireCDscale *= Math.pow(0.76923, Math.max(0, b.inventory.length - 1))
+        if (tech.isGrabFireRate && m.ledgeCoyote !== 0) b.fireCDscale *= 0.33
+        if (tech.isFireRateForGuns) b.fireCDscale *= 1 / (1 + 0.35 * Math.max(0, b.inventory.length - 1)) //CDscale = 1 / (1 + (0.3 * count)); // Math.pow(0.76923, Math.max(0, b.inventory.length - 1))
         if (tech.isFireMoveLock) b.fireCDscale *= 0.33
     },
     fireAttributes(dir, rotate = true) {
@@ -1585,15 +1587,9 @@ const b = {
                         player.force.y += momentum.y
                         if (this.pickUpTarget) {
                             if (tech.isReel && this.blockDist > 15 && m.immuneCycle < m.cycle) {
-                                // console.log(0.0003 * Math.min(this.blockDist, 1000))
-                                m.energy += 0.00113 * Math.min(this.blockDist, 800) * level.isReducedRegen //max 0.352 energy
-                                simulation.drawList.push({ //add dmg to draw queue
-                                    x: m.pos.x,
-                                    y: m.pos.y,
-                                    radius: 10,
-                                    color: m.fieldMeterColor,
-                                    time: simulation.drawTime
-                                });
+                                const regen = 0.00113 * Math.min(this.blockDist, 800) * level.isReducedRegen //max 0.352 energy
+                                m.energy += regen
+                                for (let i = 0; i < 2; i++)simulation.energyGenGraphic()
                             }
                             m.holdingTarget = this.pickUpTarget
                             // give block to player after it returns
@@ -1927,7 +1923,7 @@ const b = {
                     })
                 }
                 if (tech.isBreakHarpoon && Math.random() < 0.1 && !who.isInvulnerable) {
-                    if (tech.isBreakHarpoonGain && !who.isDropPowerUp) {
+                    if (tech.isBreakHarpoonGain && who.isDropPowerUp) {
                         powerUps.spawn(m.pos.x, m.pos.y - 50, "research");
                         powerUps.spawn(m.pos.x - 20, m.pos.y + 15, "research");
                         powerUps.spawn(m.pos.x + 20, m.pos.y + 15, "boost");
@@ -2566,6 +2562,9 @@ const b = {
                             powerUp[i].effect();
                             Matter.Composite.remove(engine.world, powerUp[i]);
                             powerUp.splice(i, 1);
+
+                            simulation.energyGenGraphic()
+                            simulation.energyGenGraphic()
                             return;
                         }
                     }
@@ -2756,10 +2755,11 @@ const b = {
             endCycle: Infinity,
             lookFrequency: 0,
             range: 700 - 300 * tech.isFoamMine,
+
             beforeDmg() { },
             onEnd() {
                 if (this.isArmed && !tech.isMineSentry) {
-                    if (tech.isFoamMine && bullet.length < 600) {
+                    if (tech.isFoamMine && bullet.length < 400) {
                         //send 14 in random directions slowly
                         for (let i = 0; i < 12; i++) {
                             const radius = 13 + 8 * Math.random()
@@ -2854,7 +2854,7 @@ const b = {
                                             this.do = function () { //overwrite the do method for this bullet
                                                 this.force.y += this.mass * 0.002; //extra gravity
                                                 if (!(simulation.cycle % this.lookFrequency)) { //find mob targets
-                                                    if (tech.isFoamMine && bullet.length < 600) {
+                                                    if (tech.isFoamMine && bullet.length < 400) {
                                                         this.shots -= 0.6 * b.targetedFoam(this.position, 1, 21 + 7 * Math.random(), 1200, false)
                                                         b.targetedFoam(this.position, 1, 21 + 7 * Math.random(), 1200, false)
                                                     } else if (tech.isSuperMine) {
@@ -2939,6 +2939,7 @@ const b = {
                 if (tech.isMutualism && this.isMutualismActive) {
                     if (tech.isEnergyHealth) {
                         m.energy += 0.02
+                        simulation.energyGenGraphic()
                     } else {
                         m.health += 0.02
                         if (m.health > m.maxHealth) m.health = m.maxHealth;
@@ -3055,6 +3056,7 @@ const b = {
                 if (tech.isMutualism && this.isMutualismActive) {
                     if (tech.isEnergyHealth) {
                         m.energy += 0.01
+                        simulation.energyGenGraphic()
                     } else {
                         m.health += 0.01
                         if (m.health > m.maxHealth) m.health = m.maxHealth;
@@ -3123,6 +3125,97 @@ const b = {
             }
         }
     },
+
+    isoWave360Solo(where, end = 500 * Math.sqrt(tech.bulletsLastLonger), speed = 1.6 * tech.waveBeamSpeed, cd = 0) {//fire one 360 circular wave at a time,   the gun uses a more efficient method for firing several at a time
+        simulation.ephemera.push({
+            position: where,
+            radius: 25,
+            resonanceCount: 0,
+            end: end,
+            phononWaveCD: cd,
+            do() {
+                if (!m.isTimeDilated && m.cycle % 2) {
+                    ctx.strokeStyle = "rgb(0,20,20)" //"000";
+                    ctx.lineWidth = 2 * tech.wavePacketDamage
+                    ctx.beginPath();
+                    ctx.arc(this.position.x, this.position.y, this.radius, 0, 2 * Math.PI);
+
+                    for (let j = 0, len = mob.length; j < len; j++) {
+                        if (!mob[j].isShielded) {
+                            const dist = Vector.magnitude(Vector.sub(this.position, mob[j].position))
+                            const r = mob[j].radius + 30
+                            if (dist + r > this.radius && dist - r < this.radius) {
+                                //make them shake around
+                                if (!mob[j].isBadTarget) {
+                                    mob[j].force.x += 0.01 * (Math.random() - 0.5) * mob[j].mass
+                                    mob[j].force.y += 0.01 * (Math.random() - 0.5) * mob[j].mass
+                                }
+                                Matter.Body.setVelocity(mob[j], { //friction
+                                    x: mob[j].velocity.x * 0.94,
+                                    y: mob[j].velocity.y * 0.94
+                                });
+                                //draw vibes
+                                if (!(m.cycle % 3)) {
+                                    let vertices = mob[j].vertices;
+                                    const vibe = 50 + mob[j].radius * 0.15
+                                    ctx.moveTo(vertices[0].x + vibe * (Math.random() - 0.5), vertices[0].y + vibe * (Math.random() - 0.5));
+                                    for (let k = 1; k < vertices.length; k++) {
+                                        ctx.lineTo(vertices[k].x + vibe * (Math.random() - 0.5), vertices[k].y + vibe * (Math.random() - 0.5));
+                                    }
+                                    ctx.lineTo(vertices[0].x + vibe * (Math.random() - 0.5), vertices[0].y + vibe * (Math.random() - 0.5));
+                                }
+                                //damage
+                                let damage = 2 * 2.3 * tech.wavePacketDamage * tech.waveBeamDamage * (tech.isBulletTeleport ? 1.43 : 1) * (tech.isInfiniteWaveAmmo ? 0.75 : 1) //damage is lower for large radius mobs, since they feel the waves longer
+                                if (tech.isFallWave) {
+                                    mobs.statusStun(mob[j], 180)
+                                }
+                                mob[j].locatePlayer();
+                                mob[j].damage(damage / Math.sqrt(mob[j].radius));
+
+                                if (tech.isPhononWave && this.phononWaveCD < m.cycle) {
+                                    this.phononWaveCD = m.cycle + 50
+                                    b.isoWave360Solo(mob[j].position, 500 * Math.sqrt(tech.bulletsLastLonger), speed, this.phononWaveCD)
+                                }
+                            }
+                        }
+                    }
+                    for (let j = 0, len = Math.min(30, body.length); j < len; j++) {
+                        if (!body[j].isInvulnerable) {
+                            const dist = Vector.magnitude(Vector.sub(this.position, body[j].position))
+                            const r = 20
+                            if (dist + r > this.radius && dist - r < this.radius) {
+                                const who = body[j]
+                                //make them shake around
+                                who.force.x += 0.01 * (Math.random() - 0.5) * who.mass
+                                who.force.y += (0.01 * (Math.random() - 0.5) - simulation.g * 0.25) * who.mass //remove force of gravity
+                                //draw vibes
+                                if (!(m.cycle % 5)) {
+                                    let vertices = who.vertices;
+                                    const vibe = 25
+                                    ctx.moveTo(vertices[0].x + vibe * (Math.random() - 0.5), vertices[0].y + vibe * (Math.random() - 0.5));
+                                    for (let k = 1; k < vertices.length; k++) {
+                                        ctx.lineTo(vertices[k].x + vibe * (Math.random() - 0.5), vertices[k].y + vibe * (Math.random() - 0.5));
+                                    }
+                                    ctx.lineTo(vertices[0].x + vibe * (Math.random() - 0.5), vertices[0].y + vibe * (Math.random() - 0.5));
+                                }
+                                if (tech.isPhononBlock && !who.isNotHoldable && who.speed < 5 && who.angularSpeed < 0.1) {
+                                    if (Math.random() < 0.5) b.targetedBlock(who, 50 - Math.min(25, who.mass * 3)) //    targetedBlock(who, speed = 50 - Math.min(20, who.mass * 2), range = 1600) {
+                                    // Matter.Body.setAngularVelocity(who, (0.25 + 0.1 * Math.random()) * (Math.random() < 0.5 ? -1 : 1));
+                                    who.torque += who.inertia * 0.001 * (Math.random() - 0.5)
+                                }
+                            }
+                        }
+                    }
+
+                    this.radius += speed
+                    if (this.radius > this.end - 30 * this.resonanceCount) { //* Math.pow(0.9, this.waves[i].resonanceCount)
+                        simulation.removeEphemera(this)
+                    }
+                    ctx.stroke()
+                }
+            },
+        })
+    },
     iceIX(speed = 0, dir = m.angle + Math.PI * 2 * Math.random(), where = {
         x: m.pos.x + 30 * Math.cos(m.angle),
         y: m.pos.y + 30 * Math.sin(m.angle)
@@ -3152,7 +3245,11 @@ const b = {
                 if (!who.isInvulnerable) {
                     if (tech.iceEnergy && !who.shield && !who.isShielded && who.isDropPowerUp && who.alive && m.immuneCycle < m.cycle) {
                         setTimeout(() => {
-                            if (!who.alive) m.energy += tech.iceEnergy * 0.8 * level.isReducedRegen
+                            if (!who.alive) {
+                                m.energy += tech.iceEnergy * 0.8 * level.isReducedRegen
+                                simulation.energyGenGraphic()
+                                simulation.energyGenGraphic()
+                            }
                         }, 10);
                     }
                     mobs.statusSlow(who, tech.iceIXFreezeTime)
@@ -3261,6 +3358,7 @@ const b = {
                 if (tech.isMutualism && this.isMutualismActive) {
                     if (tech.isEnergyHealth) {
                         m.energy += 0.02
+                        simulation.energyGenGraphic()
                     } else {
                         m.health += 0.02
                         if (m.health > m.maxHealth) m.health = m.maxHealth;
@@ -4059,7 +4157,8 @@ const b = {
                     x: targets[index].x + SPREAD * (Math.random() - 0.5),
                     y: targets[index].y + SPREAD * (Math.random() - 0.5)
                 }
-                b.superBall(position, Vector.mult(Vector.normalise(Vector.sub(WHERE, position)), speed), radius)
+                const dir = Vector.mult(Vector.normalise(Vector.sub(WHERE, position)), speed)
+                b.superBall(position, dir, radius)
                 shotsFired++
             } else if (isRandomAim) { // aim in random direction
                 const ANGLE = 2 * Math.PI * Math.random()
@@ -4800,23 +4899,11 @@ const b = {
                         Matter.Body.setAngularVelocity(this, this.spin)
                         if (this.isUpgraded) {
                             m.energy += 0.12 * level.isReducedRegen
-                            simulation.drawList.push({ //add dmg to draw queue
-                                x: this.position.x,
-                                y: this.position.y,
-                                radius: 10,
-                                color: m.fieldMeterColor,
-                                time: simulation.drawTime
-                            });
+                            for (let i = 0; i < 2; i++)simulation.energyGenGraphic()
                         } else {
                             m.energy += 0.04 * level.isReducedRegen
-                            simulation.drawList.push({ //add dmg to draw queue
-                                x: this.position.x,
-                                y: this.position.y,
-                                radius: 5,
-                                color: m.fieldMeterColor,
-                                time: simulation.drawTime
-                            });
                         }
+                        simulation.energyGenGraphic()
                     }
                 }
 
@@ -5709,10 +5796,19 @@ const b = {
                         }
                     }
                 }
-                //orbit player
+
+
+
                 const time = simulation.cycle * this.orbitalSpeed + this.phase
-                const orbit = { x: Math.cos(time), y: Math.sin(time) }
+                // if (this.isUpgraded) {
+                //     const baseOrbit = { x: 1.5 * Math.cos(time), y: 0.8 * Math.sin(time) };
+                //     const precessionAngle = simulation.cycle * 0.03;
+                //     const orbit = Vector.rotate(baseOrbit, precessionAngle);
+                //     Matter.Body.setPosition(this, Vector.add(m.pos, Vector.mult(orbit, this.range))) //bullets move with player
+                // } else {
+                const orbit = { x: Math.cos(time), y: Math.sin(time) };
                 Matter.Body.setPosition(this, Vector.add(m.pos, Vector.mult(orbit, this.range))) //bullets move with player
+                // }
             }
         })
         // bullet[me].orbitalSpeed = Math.sqrt(0.7 / bullet[me].range)
@@ -5755,7 +5851,7 @@ const b = {
             name: "nail gun", // 0
             // description: `use compressed air to shoot a stream of <strong>nails</strong><br><em>fire rate</em> <strong>increases</strong> the longer you fire<br><strong>60</strong> nails per ${powerUps.orb.ammo()}`,
             descriptionFunction() {
-                return `use compressed air to rapidly drive <strong>nails</strong><br><em>fire rate</em> <strong>increases</strong> the longer you fire<br><strong>${this.ammoPack.toFixed(0)}</strong> nails per ${powerUps.orb.ammo()}`
+                return `use compressed air to rapidly drive <strong>nails</strong><br><em>fire rate</em> <strong>increases</strong> the longer you fire<br><strong>${0.5 * this.ammoPack.toFixed(0)}</strong> nails per ${powerUps.orb.ammo()}`
             },
             ammo: 0,
             ammoPack: 27,
@@ -6070,7 +6166,7 @@ const b = {
             name: "shotgun", //1
             // description: `fire a wide <strong>burst</strong> of short range <strong> bullets</strong><br>with a low <strong><em>fire rate</em></strong><br><strong>3-4</strong> nails per ${powerUps.orb.ammo()}`,
             descriptionFunction() {
-                return `fire a wide <strong>burst</strong> of short range <strong>pellets</strong><br>has a slow <strong><em>fire rate</em></strong><br><strong>${this.ammoPack.toFixed(1)}</strong> shots per ${powerUps.orb.ammo()}`
+                return `fire a wide <strong>burst</strong> of short range <strong>pellets</strong><br>has a slow <strong><em>fire rate</em></strong><br><strong>${0.5 * this.ammoPack.toFixed(1)}</strong> shots per ${powerUps.orb.ammo()}`
             },
             ammo: 0,
             ammoPack: 1.6,
@@ -6394,7 +6490,7 @@ const b = {
         }, {
             name: "super balls", //2
             descriptionFunction() {
-                return `fire <strong>3</strong> balls that retain<br><strong>momentum</strong>, <strong>kinetic energy</strong> after <strong>collisions</strong><br><strong>${this.ammoPack.toFixed(0)}</strong> balls per ${powerUps.orb.ammo()}`
+                return `fire <strong>3</strong> balls that retain<br><strong>momentum</strong>, <strong>kinetic energy</strong> after <strong>collisions</strong><br><strong>${0.5 * this.ammoPack.toFixed(0)}</strong> balls per ${powerUps.orb.ammo()}`
             },
             ammo: 0,
             ammoPack: 4.05,
@@ -6480,7 +6576,7 @@ const b = {
             name: "wave", //3
             // description: `emit <strong>wave packets</strong> that propagate through <strong>solids</strong><br>waves <strong class='color-s'>slow</strong> mobs<br><strong>115</strong> packets per ${powerUps.orb.ammo()}`,
             descriptionFunction() {
-                return `emit <strong>wave packets</strong> that propagate in <strong>solids</strong><br>waves <strong class='color-s'>slow</strong> mobs<br><strong>${this.ammoPack.toFixed(0)}</strong> wave packets per ${powerUps.orb.ammo()}`
+                return `emit <strong>wave packets</strong> that propagate in <strong>solids</strong><br>waves <strong class='color-s'>slow</strong> mobs<br><strong>${0.5 * this.ammoPack.toFixed(0)}</strong> wave packets per ${powerUps.orb.ammo()}`
             },
             ammo: 0,
             ammoPack: 60,
@@ -6533,7 +6629,6 @@ const b = {
                                         mob[j].force.x += 0.01 * (Math.random() - 0.5) * mob[j].mass
                                         mob[j].force.y += 0.01 * (Math.random() - 0.5) * mob[j].mass
                                     }
-                                    // if (!mob[j].isShielded) {
                                     Matter.Body.setVelocity(mob[j], { //friction
                                         x: mob[j].velocity.x * 0.95,
                                         y: mob[j].velocity.y * 0.95
@@ -6549,7 +6644,6 @@ const b = {
                                     //damage
                                     mob[j].locatePlayer();
                                     mob[j].damage(damage / Math.sqrt(mob[j].radius));
-                                    // }
                                     if (tech.isPhononWave && this.phononWaveCD < m.cycle) {
                                         this.phononWaveCD = m.cycle + 8 * (1 + this.waves[i].resonanceCount)
                                         this.waves.push({
@@ -6843,7 +6937,7 @@ const b = {
             name: "missiles", //6
             // description: `launch <strong>homing</strong> missiles that target mobs<br>missiles <strong class='color-e'>explode</strong> on contact with mobs<br><strong>5</strong> missiles per ${powerUps.orb.ammo()}`,
             descriptionFunction() {
-                return `launch <strong>homing</strong> missiles that target mobs<br>missiles <strong class='color-e'>explode</strong> on contact with mobs<br><strong>${this.ammoPack.toFixed(1)}</strong> missiles per ${powerUps.orb.ammo()}`
+                return `launch <strong>homing</strong> missiles that target mobs<br>missiles <strong class='color-e'>explode</strong> on contact with mobs<br><strong>${0.5 * this.ammoPack.toFixed(1)}</strong> missiles per ${powerUps.orb.ammo()}`
             },
             ammo: 0,
             ammoPack: 2.3,
@@ -6942,7 +7036,7 @@ const b = {
             name: "grenades", //5
             // description: `lob a single <strong>bouncy</strong> projectile<br><strong class='color-e'>explodes</strong> on <strong>contact</strong> or after one second<br><strong>7</strong> grenades per ${powerUps.orb.ammo()}`,
             descriptionFunction() {
-                return `lob a single <strong>bouncy</strong> projectile<br><strong class='color-e'>explodes</strong> on <strong>contact</strong> or after <strong>1.5</strong> seconds<br><strong>${this.ammoPack.toFixed(0)}</strong> grenades per ${powerUps.orb.ammo()}`
+                return `lob a single <strong>bouncy</strong> projectile<br><strong class='color-e'>explodes</strong> on <strong>contact</strong> or after <strong>1.5</strong> seconds<br><strong>${0.5 * this.ammoPack.toFixed(0)}</strong> grenades per ${powerUps.orb.ammo()}`
             },
             ammo: 0,
             ammoPack: 3.2,
@@ -6967,7 +7061,7 @@ const b = {
             name: "spores", //6
             // description: `toss a <strong class='color-p' style='letter-spacing: 2px;'>sporangium</strong> that discharges <strong class='color-p' style='letter-spacing: 2px;'>spores</strong><br><strong class='color-p' style='letter-spacing: 2px;'>spores</strong> seek out nearby mobs<br><strong>2-3</strong> sporangium per ${powerUps.orb.ammo()}`,
             descriptionFunction() {
-                return `toss <strong class='color-p' style='letter-spacing: 2px;'>sporangium</strong> that discharges ${b.guns[6].nameString("s")}<br>${b.guns[6].nameString("s")} seek out nearby mobs<br><strong>${this.ammoPack.toFixed(1)}</strong> sporangium per ${powerUps.orb.ammo()}`
+                return `toss <strong class='color-p' style='letter-spacing: 2px;'>sporangium</strong> that discharges ${b.guns[6].nameString("s")}<br>${b.guns[6].nameString("s")} seek out nearby mobs<br><strong>${0.5 * this.ammoPack.toFixed(1)}</strong> sporangium per ${powerUps.orb.ammo()}`
             },
             ammo: 0,
             ammoPack: 1.22,
@@ -7182,7 +7276,7 @@ const b = {
         }, {
             name: "drones", //7
             descriptionFunction() {
-                return `deploy <strong>drones</strong> that smash into mobs<br>drones <strong>collect</strong> nearby power ups<br><strong>${this.ammoPack.toFixed(0)}</strong> drones per ${powerUps.orb.ammo()}`
+                return `deploy <strong>drones</strong> that smash into mobs<br>drones <strong>collect</strong> nearby power ups<br><strong>${0.5 * this.ammoPack.toFixed(0)}</strong> drones per ${powerUps.orb.ammo()}`
             },
             ammo: 0,
             ammoPack: 7.8,
@@ -7224,7 +7318,7 @@ const b = {
         {
             name: "foam", //8
             descriptionFunction() {
-                return `spray bubbly <strong>foam</strong> that <strong>sticks</strong> to mobs<br><strong class='color-s'>slows</strong> mobs and does <strong class='color-d'>damage</strong> over time<br><strong>${this.ammoPack.toFixed(0)}</strong> bubbles per ${powerUps.orb.ammo()}`
+                return `spray bubbly <strong>foam</strong> that <strong>sticks</strong> to mobs<br><strong class='color-s'>slows</strong> mobs and does <strong class='color-d'>damage</strong> over time<br><strong>${0.5 * this.ammoPack.toFixed(0)}</strong> bubbles per ${powerUps.orb.ammo()}`
             },
             ammo: 0,
             ammoPack: 12.6,
@@ -7349,7 +7443,7 @@ const b = {
             name: "harpoon", //9
             // description: `throw a <strong>self-steering</strong> harpoon that uses <strong class='color-f'>energy</strong><br>to <strong>retract</strong> and refund its <strong class='color-ammo'>ammo</strong> cost<br><strong>1-2</strong> harpoons per ${powerUps.orb.ammo()}`,
             descriptionFunction() {
-                return `throw a <strong>harpoon</strong> that uses <strong class='color-f'>energy</strong> to <strong>retract</strong><br><strong>harpoons</strong> refund <strong class='color-ammo'>ammo</strong><br><strong>${this.ammoPack.toFixed(1)}</strong> harpoons per ${powerUps.orb.ammo()}`
+                return `throw a <strong>harpoon</strong> that uses <strong class='color-f'>energy</strong> to <strong>retract</strong><br><strong>harpoons</strong> refund <strong class='color-ammo'>ammo</strong><br><strong>${0.5 * this.ammoPack.toFixed(1)}</strong> harpoons per ${powerUps.orb.ammo()}`
             },
             harpoonName() {
                 return "<strong>" + (tech.isMaul ? "maul" : (tech.isRebar ? "rebar" : "harpoon")) + "</strong>"
@@ -7579,13 +7673,13 @@ const b = {
                 }
                 //look for closest mob in player's LoS
                 const harpoonSize = (tech.isLargeHarpoon ? 1 + 0.1 * Math.sqrt(this.ammo) : 1) //* (m.crouch ? 0.7 : 1)
-                const totalCycles = 6.5 * (tech.isFilament ? 1 + 0.013 * Math.min(110, this.ammo) : 1) * Math.sqrt(harpoonSize)
+                const totalCycles = 6.5 * (tech.isUHMWPE ? 1 + 0.013 * Math.min(110, this.ammo) : 1) * Math.sqrt(harpoonSize)
 
                 if (tech.extraHarpoons && !m.crouch) { //multiple harpoons
                     const SPREAD = 0.2
                     let angle = m.angle - SPREAD * tech.extraHarpoons / 2;
                     const dir = { x: Math.cos(angle), y: Math.sin(angle) }; //make a vector for the player's direction of length 1; used in dot product
-                    const range = 450 * (tech.isFilament ? 1 + 0.012 * Math.min(110, this.ammo) : 1)
+                    const range = 450 * (tech.isUHMWPE ? 1 + 0.012 * Math.min(110, this.ammo) : 1)
                     let targetCount = 0
                     for (let i = 0, len = mob.length; i < len; ++i) {
                         if (mob[i].alive && !mob[i].isBadTarget && !mob[i].shield && Matter.Query.ray(map, m.pos, mob[i].position).length === 0 && !mob[i].isInvulnerable) {
@@ -7656,7 +7750,7 @@ const b = {
             name: "mine", //10
             // description: `toss a <strong>proximity</strong> mine that <strong>sticks</strong> to walls<br>refund <strong>undetonated</strong> mines on <strong>exiting</strong> a level<br><strong>1-2</strong> mines per ${powerUps.orb.ammo()}`,
             descriptionFunction() {
-                return `toss a <strong>proximity</strong> mine that <strong>sticks</strong> to walls<br>refund <strong>undetonated</strong> mines on <strong>exiting</strong> level<br><strong>${this.ammoPack.toFixed(1)}</strong> mines per ${powerUps.orb.ammo()}`
+                return `toss a <strong>proximity</strong> mine that <strong>sticks</strong> to walls<br>refund <strong>undetonated</strong> mines on <strong>exiting</strong> level<br><strong>${0.5 * this.ammoPack.toFixed(1)}</strong> mines per ${powerUps.orb.ammo()}`
             },
             ammo: 0,
             ammoPack: 0.77,

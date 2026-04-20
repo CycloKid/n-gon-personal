@@ -1,24 +1,55 @@
 ******************************************************** NEXT PATCH **************************************************
 
-Zectron renamed slime
-tech borax - gives ammo when slime removes super ball bullets
+tech: Grand Unified Theory - fields and guns are quadrupled into 4 coupling and coupling is automatically duplicated
+  requires field emitter, but you can still get a field with "cross-disciplinary" or removal tech
+tech: Banach space - spawn small power ups and random bullets after entering an alternate reality
+tech: barycenter - after Verlet integration advances time build a scrap orbital-bot that lasts 22 seconds
+tech: Klemperer rosette - build 3 orbital-bots for 2 research
+tech: conchoidal - 1.04x damage after killing a mob, effect resets after colliding with a mob
+tech: dividend - at the end of each level spawn ammo power ups equal to 50% of average ammo for your guns
+  requires interest
+
+technical intelligence gives 2x frequency of gunTech, 1.5->1.4x damage
+antiscience ejects before killing you, 1.7->1.6 damage
+on screen power up cap 300->200
 
 bug fixes
-  reverted to the build before queued removal
-    added back most changes not related to queued removal
-
+  fixed issue with spalling not triggering on mobs that drop power ups
+  seismic wave shouldn't stack to 3x, set to 1x stack max
+  fixed bug with "Casimir" having old name "energy" for some situations
+  adjusted gun ammo prediction text (was 2x too high)
+  removed powerUp[powerUp.length - 1].isDuplicated = true (this might cause errors)
+  
 *********************************************************** TODO *****************************************************
 
+field emitter coupling effects (compared to normal fields)
+  100% block damage, 100% bonus ammo, 50% iceIX deflection, 33% dmg reduction, 33% energy regen, 20% max energy, 10% dmg
 
-make a low graphics setting?
-  turn off
-    final boss health bar
-    filament animation
-    minimal UI stuff
-    stroke on blocks?
-    duplication animation
+!tech: conformal infinity - when your wormhole dissipates(wording) regenerate 50% of the energy you had when the wormhole was produced
+    how?    compare energy on wormhole creation to energy on wormhole dissipation
+  !unwritten
+
+!tech:   - rip in spacetime - using wormhole leaves behind a zone of radiation, like neutron bomb  ( grenadeNeutron )
+  !unwritten
+
+
+!switch normal mode to something not involving 360 waves
+  each "head" has a different effect
+    line - laser
+      reflections?
+    dot - neutron bomb-like AoE
+  remove requirements for wave upgrades from normal mode
+  maybe just add another eigen tech and don't remove normal mode
+
+
+add gradients to performance mode
+  plasma ball
+  tungsten carbide
 
 tech: plating- at the start of each level gain 0.25 damage reduction, slowly lose this effect over 40 seconds
+
+Grenade- grenades bounce # number of times, detonating 1 second after final bounce (You ever play overwatch? pretty much junkrat in terms of how the grenade bounces)
+  explosions after each bounce?
 
 in the pause/experiment menus clicking on tech,guns,field orbs with produce text to speech of it's name
   !a second click will read the description?
@@ -33,58 +64,38 @@ sort text input is broken in pause menu
     bot tech
     JUNK
   
-eigenstate
-  update node animation, it doesn't look right...
-  add custom text for eigenstate (if you add at least 2 more tech)
-eigenstate - additional tech
-  while your eigan state is moving it will fire ______ at nearby mobs
-  your state teleports to you when you____
-        hold down?   tap up up up
-  your eigen state fires when you fire
-    too hard to code...
-  gain a laser bot and your laser bots follow your eigen state
-  when you use ammo your eigen state makes an isometric wave?
-  do something after swap for a few seconds
-    damage?
-    faster move speed 6s after swap??
-  general damage reduction
-  3x block damage?
-  2 different bonus effects for each state
-    damage, damage reduction, movement and jump
-  the damage you do after swapping states lasts longer?
-  tech.field,guns, ammo, coupling, research, max health, max energy, duplication, ... will swap
+tech: - upgrade for diffuse beam that slowing rotates each laser beam to fire at different angles
+  and maybe gives 3 more beams
 
-
-replace damage side bar with a number?
-  where: red text above tech list
+replace damage side bar with a number??
+  where: red text below field
   changing numbers might get distracting?
-replace damage reduction with a number?
-  I actually like this bar, so maybe don't replace
-  where
-    white text above health bar?
-    inside health bar?
 
-tech: - at the end of each level get 40% of current gun's ammo
-  requires interest
-
-tech:  - at the end of each level if you have no guns....
-  get a bot? 
-  1.2x damage
-
-tech:  - if you have no field get....
+upgrade missile guidance to improve missile speed and aiming while targeting
+  and damage for direct hits?
+  not get extra ammo
 
 try to also allow players to unpause in choosing menu
 
 
-
+web lines - putting down lines that last maybe 10-20 seconds that slow and damage mobs.
+  plasma field tech? maybe when the plasma globe explodes make web lines
+  plasma extruder could make lines when it kills a mob?
+  wormhole tech? when you teleport you leave a web behind?
+  spore tech? when sporangium hatch they shoot out a few web lines that slow nearby mobs?
+  ***most obvious is grappling hook tech: grappling hook leaves behind web lines
 
 add an HTML input in the tech description(slider or checkbox, dropdown menu,  other inputs)
   put html slider in tech description, adjust when paused
   it will control some property that is sometimes better at different values
+    checkboxes or sliders for drone priorities
+      power ups
+      bosses
+      range
     convert all bots to a type with dropdown menu
       or change what bots are upgraded to
     cost benefit trades with slider
-      bot AI behaviors
+      bot or drone AI behaviors
         range - frequency
       health - energy
       dmg - dmg reduction
@@ -101,6 +112,7 @@ new level - ducts
       push less if on ground or crouching or holding block
     graphics?
       draw a line and move it in the direction of wind
+      looking community map vents and spawnStreamer
   tunnels with wind
     change wind direction with button?
       maybe two buttons that alternate the direction like on the map corridor
@@ -108,50 +120,28 @@ new level - ducts
       player needs to press buttons to switch the furnace off
         but it only stays off for a short time
   maybe some spinners that look like fans
+  a very large number of buttons
+    pressing all the buttons unlocks something?
+    buttons are scatter around on wall, ceiling, floor
+      rewrite button code to have any angle?
 
 filament
-  tech: - filament tip is drawn towards blocks?, power ups?, mobs?
+  tech: - filament tip is pulled towards blocks?, power ups?, mobs?
     and does something good when it touches them
-?world line - give energy when cut?
-  stop giving extra length from power ups?
-tech filament attacks mobs with the tip
-  gravitate every segment, maybe with less weigh to the shorter parts
+      maybe isoWave360
 
 tubeWormBoss T4 or T5
-
-tech: filament - gets longer as you eat power ups (up to a max length), mobs can cut wire, wire length gives duplication
-  long tails looks strange in vertical flip?
-  improve with additional tech
-    coaxial, ductile - wire length increases damage
-    aura around wire (to kill bullets)
-    aura around wire (or just tip) that freezes
-      tip spawns ice-IX
-    change wire physics, color, draw style with upgrades
-      const rigidity = 1; // 0 (loose) to 1 (crinkles), -0.6 has wiggly knots
-      this.gravity = 0.6;
-      this.friction = 0.5;
-      spacing = 20//40 has bigger loops and a whole different feel
 
 zoom in/out when choosing power ups
   interactions with other zoom actions
     zoom at start of level  (this could be instant)
 
-make orbital bots have an elliptical orbit that precesses
-
-do something with verlet wire system and elastic thread system      https://gemini.google.com/app/d4459990774e555d?utm_source=app_launcher&utm_medium=owned&utm_campaign=base_all
-  skin with wires attached
-    upgrades increase wire length
-  boss mob with tail? - done
-  JUNK tech with several wires as hair
-  wire length is diegetic energy bar/health bar
-  snake boss?
-    maybe use the simple elastic tail code?
-
-
 do something with powerUps.totalUsed
   give dmg for each power up used this game?
 
-make a new power up that is small and white
+make a new power up that is
+  small and white
+  large and orange or red
   unlock with a tech
   effect?
     temporary buff, like boost
@@ -159,14 +149,6 @@ make a new power up that is small and white
 
 use the horizontal vibration effect on a mob or gun or level effect
   ctx.translate((simulation.cycle % 2) * 8, 0);
-
-add a setting to say the name of each tech/field/guns
-  is the built in browser voice good enough accuracy? (yep)
-  when to generate audio?
-    click on the orb while paused?
-    add new icon to click on to the right align of the title
-    after choose (this needs a setting to disable)
-    just make it a JUNK tech?
 
 mob attack - crash on top of player when above
   mob flies towards player, but aims for a space above the player (if there is no map of body elements int the way)
@@ -199,10 +181,6 @@ Boltzmann brain
       convert with ship tech
     chance to spawn something good?
   JUNK tech?
-
-perfect diamagnetism tech:   - using field while crouching will pull in blocks
-  releasing field will fire the blocks  (like control)
-  very strong, but high energy cost
 
 gun tech upgrade that rewards pressing fire with a precise rhythm
   press fire every 2-3 seconds and each time you get a "perfect" rhythm
@@ -350,7 +328,7 @@ tech:  - limit the total number of tech
       before or after normal tech UI
       can copy the standard tech UI with a few differences
 
-tech:  - nonrefundable tech that gives you 2 tech that each have minor negative effects
+tech:  - instant tech that gives you 2 tech that each have minor negative effects
   synergy with removing tech builds
   minor negative tech
     lower damage
@@ -361,22 +339,20 @@ tech:  - nonrefundable tech that gives you 2 tech that each have minor negative 
     benefit after removing the negative tech
 
 field tech: - use _____ to refresh current choices  (or give +6 choices for the next 3 tech)
+  use 
+    10 health
   which field? (pick one based on the name)
     pilot wave (choices)
     wormhole? (alt reality)
     time dilation (rewind time)
-  or skin tech
-  use 
-    10 health
-    all your energy 
-      produce a new choice for each 30 energy
+    or skin tech (or skin tech upgrade)
 
 mob status: confused - I could rotate the velocity that mobs have gently over 1-2 seconds. that might work.
   probably also want to add a force so effects are noticable for stationary mobs
   problem is that mobs all have different airFriction
 
 constraint: remove 10% of your tech until the end of the level
-  does remove then add give any benefits, or lasting effects?
+  what if remove then adding gives a benefits / lasting effects?
 
 mob: weeping angle - spawns long lasting bullets, like seekers, but called weepers
   tier 3
@@ -387,13 +363,6 @@ mob: weepers - bullet
   player can see
     invincible
     frozen/not moving/slow moving?
-
-!conformal infinity - after making a wormhole, subsequent wormholes generate energy 10 energy for the next 5 seconds
-  replace holographic principle?
-  !image
-!quasar  - gain 1 random small power up for each block your wormhole eats
-  cap at 10?
-  !image
 
 !!!mob: spiker - moves around, but then stops and makes porcupine spikes for 2 seconds, then moves again.
   maybe use hopper movement?
@@ -426,26 +395,10 @@ tech - if you haven't fired a bullet in 4 seconds your next bullet is bigger?
     ephemera?  This doesn't sync to the bullet fired, it would have to be a additional projectiles
     custom to each gun?
 
-option for numerical HUD
-  dmg, energy, health, defense
-
-hold jump to jump much higher
-  field tech?  or skin tech?
-    maybe require nitinol first?
-
 wormhole fieldtech:   - gain 1% duplication for this level each time the wormhole eats a block
   add a limit to the number of blocks that can be duplicated?
   can this be exploited to not be fun?
   how many blocks are on an average level?
-
-tech - rip in spacetime - using wormhole leaves behind a zone of radiation, like neutron bomb  ( grenadeNeutron )
-  make a new bullet type for rip() in spacetime so you can use it for several things
-  rips()
-    lasts 2-10 seconds?
-    damages mobs and player
-    slows things caught inside?
-    black circle with randomly changing radius and sparkles inside the black circle
-      white stroke (maybe with dotted lines like laser)
 
 tech - benefit if you haven't killed any mobs on this level
   have to clean up mobs that die on level spawn from falling blocks 
@@ -1593,15 +1546,13 @@ possible names for tech
   Josephson junction - superconducting junction used in SQUIDS and quantum computers
   nuclear pasta - hard matter in neutron star
   spaghettification
-  fine-tuned universe
   nonperturbative
   D-branes
   instanton or pseudoparticle
   soliton  (wave packet)
-  hall effect thrusters
+  hall effect thrusters (related to magnetism)
   particle accelerator
   superluminal signalling
-  NP-complete
   lenticular lens:  is an array of lenses, designed so that when viewed from slightly different angles, different parts of the image underneath are shown.
   p-hacking JUNK tech
   https://en.wikipedia.org/wiki/High-entropy_alloys  high yield strength and low ductility, high temp resistance
@@ -1624,10 +1575,8 @@ possible names for tech
   radioisotope thermoelectric generator - 
   retrovirus: these things make JUNK DNA so link it somehow to that tech?
     Upon infection with a retrovirus, a cell converts the retroviral RNA into DNA and sometimes the DNA will be passed on to progeny as JUNK DNA
-  amalgam, amalgamation - the action, process, or result of combining or uniting. 
   thermoplastic - the stuff in 3-D printers, use for molecular assembler tech
   ergosphere - region of a spinning black hole that might allow FTL or alternate realities.
-  Casimir effect - attractive force between two close conductive plates
   difference engine - early calculator/computer
   cyanoacrylate - superglue use for a slowing effect?
   math terms - integral, derivative, Laplace transform, inflection point
@@ -1639,18 +1588,16 @@ possible names for tech
   metaphysics - maybe this changes something deep and universal about physics?  not sure
   cork - used as a heat shield for rockets
   P = NP - something with speeding up calculation times
+  NP-complete
   transistivity - something where a>b and b>c ->  a>c
   lenticular - looks different from different angles (lasers?, cloaking?)
     every few seconds pick a random skin tech?
   De Sitter space - simple model of universe related to general relativity (mass-energy?)
   active optics - something with lasers?  maybe something with diffuse beam getting smaller
-  quintessence - related to dark energy
   biofilm - something defensive?  related to spores?
   thermogalvanic - makes things cold, for no energy
   intron - noncoding DNA that separates regions of coding DNA,  use for JUNK tech
-  virtual particles - can have these properties: imaginary mass, violation of the conservation of energy, violation of causality, traveling faster than light or backwards in time, popping in and out of the vacuum via vacuum fluctuations
-  Sintering - the process of compacting and forming a solid mass of material by pressure[1] or heat[2] without melting it to the point of liquefaction. Sintering happens as part of a manufacturing process used with metals, ceramics, plastics, 
-  Kolmogorov complexity - how long a computer program for an algorithm is
+  Kolmogorov complexity - how long the computer program code for an algorithm is, related to entropy?
   r-selection - flea/worm tech - opposite of K-selection, so lots of weaker sproes/fleas
   acousto-optic modulator - sound makes light have a different frequency (maybe use for laser tech with many colors)
   gravity wave - 
@@ -1659,6 +1606,7 @@ possible names for tech
   renormalization
   fractal dimension - maybe for surface area?
   self-locating uncertainty - something related to anthropic principle, or many worlds
+  fine-tuned universe
   ontic - real (maybe something with research)
   epistemic - knowledge about whats real, but not strictly real... (maybe something with research)
 
