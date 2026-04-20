@@ -10,4 +10,4 @@
 
 ### Changes made
 
-* Actions Workflow to minify, compress, and mangle the site's code for much faster download/loading speeds (Needs more testing)
+* Actions Workflow to minify, compress, and mangle the site's code for much faster download/loading speeds (WIP)
