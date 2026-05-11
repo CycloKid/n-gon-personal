@@ -141,6 +141,12 @@ function beforeUnloadEventListener(event) {
     }
 }
 // addEventListener('beforeunload', beforeUnloadEventListener);
+function confirmCloseRefreshEventListener(event) {
+    if (!localSettings.isConfirmCloseRefresh) return;
+    event.preventDefault();
+    event.returnValue = '';
+}
+window.addEventListener('beforeunload', confirmCloseRefreshEventListener);
 
 
 //collision groups
@@ -356,6 +362,12 @@ const build = {
             })
         }
     },
+    toggleCloseRefreshPrompt() {
+        localSettings.isConfirmCloseRefresh = !localSettings.isConfirmCloseRefresh
+        if (localSettings.isAllowed) localStorage.setItem("localSettings", JSON.stringify(localSettings)); //update local storage
+        const checkbox = document.getElementById("confirm-close-refresh")
+        if (checkbox) checkbox.checked = localSettings.isConfirmCloseRefresh
+    },
     pauseGrid() {
         build.generatePauseLeft() //makes the left side of the pause menu with the tech
         build.generatePauseRight() //makes the right side of the pause menu with the tech
@@ -404,6 +416,8 @@ ${fullscreenWarning}
 <button onclick="build.shareURL(false)" class='sort-button' style="font-size:1em;float: right;">copy build URL</button>
 <input onclick="build.hideHUD('settings')" type="checkbox" id="hide-hud" name="hide-hud" ${localSettings.isHideHUD ? "checked" : ""}>
 <label for="hide-hud" title="hide: tech, damage taken, damage, in game console, final boss health bar, tech: filament, tech: pair production, duplication animation, eigen animation, lower max body caps, no stroke on blocks" style="font-size:1.15em;">performance mode</label>
+<br><input onclick="build.toggleCloseRefreshPrompt()" type="checkbox" id="confirm-close-refresh" name="confirm-close-refresh" ${localSettings.isConfirmCloseRefresh ? "checked" : ""}>
+<label for="confirm-close-refresh" title="ask the browser to confirm before closing or refreshing the tab" style="font-size:1.15em;">confirm close / refresh</label>
 </div>
 
 <div class="pause-grid-module">
@@ -1992,6 +2006,12 @@ if (localSettings.isAllowed && !localSettings.isEmpty) {
     if (localSettings.isHideHUD === undefined) localSettings.isHideHUD = true
     document.getElementById("hide-hud").checked = localSettings.isHideHUD
 
+    if (localSettings.isConfirmCloseRefresh === undefined) {
+        localSettings.isConfirmCloseRefresh = false
+        localStorage.setItem("localSettings", JSON.stringify(localSettings)); //update local storage
+    }
+    document.getElementById("confirm-close-refresh").checked = localSettings.isConfirmCloseRefresh
+
     if (localSettings.difficultyCompleted === undefined) {
         localSettings.difficultyCompleted = [null, false, false, false, false, false, false, false] //null because there isn't a difficulty zero
         localStorage.setItem("localSettings", JSON.stringify(localSettings)); //update local storage
@@ -2029,6 +2049,7 @@ if (localSettings.isAllowed && !localSettings.isEmpty) {
         isHuman: false,
         key: undefined,
         isHideHUD: false,
+        isConfirmCloseRefresh: false,
         pauseMenuDetailsOpen: [true, false, false, true],
         techHistory: [],
     };
@@ -2038,6 +2059,7 @@ if (localSettings.isAllowed && !localSettings.isEmpty) {
     simulation.isCommunityMaps = localSettings.isCommunityMaps
     document.getElementById("fps-select").value = localSettings.fpsCapDefault
     document.getElementById("banned").value = localSettings.banList
+    document.getElementById("confirm-close-refresh").checked = localSettings.isConfirmCloseRefresh
 }
 document.getElementById("control-testing").style.visibility = (localSettings.loreCount === 0) ? "hidden" : "visible"
 // document.getElementById("experiment-button").style.visibility = (localSettings.loreCount === 0) ? "hidden" : "visible"

@@ -56,6 +56,9 @@
             <details id='settings-details'>
                 <summary>settings</summary>
                 <div class="details-div" style="max-width: 24rem; line-height: 150%;">
+                    <input onclick="build.toggleCloseRefreshPrompt()" type="checkbox" id="confirm-close-refresh" name="confirm-close-refresh" style="width:17px; height:17px;">
+                    <label for="confirm-close-refresh" title="ask the browser to confirm before closing or refreshing the tab">confirm close / refresh</label>
+                    <br>
                     <input onclick="build.hideHUD('settings')" type="checkbox" id="hide-hud" name="hide-hud" style="width:17px; height:17px;">
                     <label for="hide-hud" title="hide: tech, damage taken, damage, in game console, final boss health bar, tech: filament, tech: pair production, duplication animation, eigen animation, lower max body caps, no stroke on blocks">performance mode</label>
                     <br>
