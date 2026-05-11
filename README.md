@@ -10,4 +10,5 @@
 
 ### Changes made
 
-* Actions Workflow to minify, compress, and mangle the site's code for much faster download/loading speeds (WIP)
+* Actions Workflow to minify, compress, and mangle the site's code for faster loading speeds (WIP)
+* Toggleable setting to enable user confirmation before refreshing or closing the game
